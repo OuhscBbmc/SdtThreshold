@@ -94,7 +94,7 @@ shinyServer(function(input, output, session) {
   
   output$plotPdf <- renderPlot({
     d <- ds()
-    g <- ggplot(d, aes(x=ds$Score)) +
+    g <- ggplot(d, aes(x=Score)) +
       geom_line(aes(y=NondiseasedPdf), color=colorNondiseased, size=4, alpha=.5) +
       geom_line(aes(y=DiseasedPdf), color=colorDiseased, size=4, alpha=.5) +
       annotate(geom="segment", x=intersectX(), y=intersectY(), xend=intersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorNondiseased) +
@@ -102,7 +102,8 @@ shinyServer(function(input, output, session) {
       annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=-.5, color=colorNondiseased) +
       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
       annotate(geom="text", label="Cutoff", x=intersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
-      theme_bw()
+      theme_bw() +
+      labs(x="Diagnostic Score", y="Probability Density")
     print(g)
   })
   
