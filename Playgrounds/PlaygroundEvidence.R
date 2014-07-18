@@ -26,9 +26,15 @@ CalculateDiseaseCdf <- function( score, baseRate, mu, sigma ) {
 }
 
 ds <- data.frame(Score=seq(from=measurementRange[1], to=measurementRange[2], by=1))
-ds$NonDiseasedDistribution <- CalculateNondiseasePdf(score=ds$Score,  muN, sigmaN, baseRate=NA)
-ds$DiseasedDistribution <- CalculateDiseasePdf(score=ds$Score, muD, sigmaD, baseRate=NA)
-ds$CumulativeNondiseased <- CalculateNondiseaseCdf(score=ds$Score,  muN, sigmaN, baseRate=NA)
-ds$CumulativeDiseased <- CalculateDiseaseCdf(score=ds$Score, muD, sigmaD, baseRate=NA)
-ds$ComplementCumulativeNondiseased <- max(ds$CumulativeNondiseased) - ds$CumulativeNondiseased
-ds$ComplementCumulativeDiseased <- max(ds$CumulativeDiseased) - ds$CumulativeDiseased
+ds$NondiseasedPdf <- CalculateNondiseasePdf(score=ds$Score,  muN, sigmaN, baseRate=NA)
+ds$DiseasedPdf <- CalculateDiseasePdf(score=ds$Score, muD, sigmaD, baseRate=NA)
+ds$NondiseasedCdfL <- CalculateNondiseaseCdf(score=ds$Score,  muN, sigmaN, baseRate=NA) #Specificity; the 'L' stands for "left" of the point.
+ds$DiseasedCdfL <- CalculateDiseaseCdf(score=ds$Score, muD, sigmaD, baseRate=NA)
+ds$NondiseasedCdfR <- 1- ds$NondiseasedCdf #max(ds$NondiseasedCdf) - ds$NondiseasedCdf
+ds$DiseasedCdfR <- 1 - ds$DiseasedCdf #max(ds$DiseasedCdf) - ds$DiseasedCdf #Sensitivity; the 'R' stands for "right" of the point.
+# ds$Line <- NA_real_
+# ds$Constant <- NA_real_
+ds$LRInstant <- ds$DiseasedPdf / ds$NondiseasedPdf
+ds$LRPlus <- (ds$DiseasedCdfR)  / (ds$NondiseasedCdfR)
+ds$LRMinus <- (ds$DiseasedCdfL)  / (ds$NondiseasedCdfL)
+ds$LRRatio <- ds$LRPlus / ds$LRMinus
