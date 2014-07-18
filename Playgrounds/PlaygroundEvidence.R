@@ -44,11 +44,13 @@ ds$LRRatio <- ds$LRPlus / ds$LRMinus
 
 FxToMinimize <- function( x ) {
   difference <- (CalculateNondiseasePdf(score=x,  muN, sigmaN, baseRate=NA) - CalculateDiseasePdf(score=x, muD, sigmaD, baseRate=NA))
-  return( abs(difference) )
+  return( difference )
 }
-searchRange <- sort(c(muD, muN)) + c(-1, 1)
+searchRange <- range(c(muD + c(1,-1)*sigmaD, muN + c(1,-1)*sigmaD))
+
 # FxToMinimize(54)
-intersectX <- optimize(f=FxToMinimize, interval=c(30, 80) )$minimum
+# intersectX <- optimize(f=FxToMinimize, interval=c(30, 80) )$minimum
+intersectX <- uniroot(f=FxToMinimize, interval=searchRange)$root
 intersectY <- CalculateNondiseasePdf(score=intersectX,  muN, sigmaN, baseRate=NA)
 peakN <- CalculateNondiseasePdf(score=muN,  muN, sigmaN, baseRate=NA)
 peakD <- CalculateDiseasePdf(score=muD,  muD, sigmaD, baseRate=NA)
