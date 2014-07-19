@@ -103,7 +103,22 @@ shinyServer(function(input, output, session) {
       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
       annotate(geom="text", label="Cutoff", x=intersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
       theme_bw() +
-      labs(x="Diagnostic Score", y="Probability Density")
+      labs(title="PDFs", x="Diagnostic Score", y="Probability Density")
+    print(g)
+  })
+  
+  output$plotRoc <- renderPlot({
+    d <- ds()
+    g <- ggplot(d, aes(x=1-NondiseasedCdfL, y=DiseasedCdfR)) +
+      geom_line(size=4, alpha=.5) +
+      coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
+#       annotate(geom="segment", x=intersectX(), y=intersectY(), xend=intersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorNondiseased) +
+#       annotate(geom="segment", x=intersectX(), y=intersectY(), xend=intersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorDiseased) +
+#       annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=-.5, color=colorNondiseased) +
+#       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
+#       annotate(geom="text", label="Cutoff", x=intersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
+      theme_bw() +
+      labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
     print(g)
   })
   

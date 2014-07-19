@@ -23,6 +23,7 @@ shinyUI(pageWithSidebar(
     #                  min = 1, max = 9)
   ),
   mainPanel(
-    plotOutput('plotPdf')
+    plotOutput('plotPdf'),
+    plotOutput('plotRoc')
   )
 ))
