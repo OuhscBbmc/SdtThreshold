@@ -10,7 +10,6 @@ require(RColorBrewer)
 
 #######################################
 ### Declare paths to external files
-# pathInput <- "../../Data/Derived/BlaBla.rds"
 
 #######################################
 ### Declare globals
@@ -19,7 +18,6 @@ stepWidthMeasurement <- 1
 stepWidthProbability <- .01
 colorNondiseased <- "blue3"
 colorDiseased <- "red3"
-
 
 #######################################
 ### Declare funcions that don't depend on reactives or user inputs.
@@ -113,8 +111,7 @@ shinyServer(function(input, output, session) {
       CalculateUtilityNondiseased(probability, s$uTP, s$uFP)
     return( difference )
   }
-  ThresholdIntersectX <- reactive({  
-#    return( uniroot(f=ThresholdDifference, interval=c(0,1) )$root )    
+  ThresholdIntersectX <- reactive({
     u <- NULL
     try(
       u <- uniroot(f=ThresholdDifference, interval=c(0,1)),
@@ -170,16 +167,13 @@ shinyServer(function(input, output, session) {
       annotate(geom="text", label="?u(FN)?", x=1, y=s$uFN, hjust=1, vjust=0, color=colorDiseased) +
       annotate(geom="text", label="?u(TP)?", x=1, y=s$uTP, hjust=1, vjust=0, color=colorNondiseased) +
       
-      #         annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
-#       annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90) +
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
-#       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
+      # coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
       theme_bw() +
       labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
 
-    thresholdIntersectX <- ThresholdIntersectX()
-    if( !is.na(thresholdIntersectX) ) {
+    if( !is.na(ThresholdIntersectX()) ) {
       g  <- g + 
         annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorNondiseased) +
         annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorDiseased)

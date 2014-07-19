@@ -69,3 +69,6 @@ ggplot(ds, aes(x=ds$Score)) +
   annotate(geom="text", label="Diseased", x=muD, y=peakD, vjust=-.5, color=colorDiseased) +
   annotate(geom="text", label="Cutoff", x=intersectX, y=0, hjust=-.05, color="gray30", angle=90) +
   theme_bw()
+
+
+approx(x = 0:1, y=c(60, 80), xout=seq(0, 1, by = .01))
