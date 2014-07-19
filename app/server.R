@@ -39,6 +39,12 @@ CalculateDiseaseCdf <- function( score, baseRate, mu, sigma ) {
   baseRate <- ifelse(is.na(baseRate), 1, baseRate) #Notice missing values are set to 1, not 0 like with nondiseased.
   return( pnorm(q=score, mean=mu, sd=sigma) * (baseRate) )
 }
+CalculateUtilityNondiseased <- function( probability, uTN, uFN) {
+  return( ((1 - probability) * uTN) + (probability * uFN) )
+}
+CalculateUtilityDiseased <- function( probability, uTP, uFP) {
+  return( (probability * uTP) + ((1-probability) * uFP) )
+}
 
 #######################################
 ### Load and tweak data
@@ -96,18 +102,18 @@ shinyServer(function(input, output, session) {
   PdfIntersectY <- reactive({
     CalculateNondiseasePdf(score=PdfIntersectX(),  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
   })
-#   ThresholdDifference <- function( x ) {
-#     difference <- CalculateNondiseasePdf(score=x,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA) - 
-#       CalculateDiseasePdf(score=x, userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
-#     return( difference )
-#   }
-#   ThresholdIntersectX <- reactive({  
-#     searchRange <- range(c(userInputs()$muD + c(1,-1)*userInputs()$sigmaD, userInputs()$muN + c(1,-1)*userInputs()$sigmaD))
-#     return( uniroot(f=PdfDifference, interval=searchRange )$root )    
-#   })
-#   ThresholdIntersectY <- reactive({
-#     CalculateNondiseasePdf(score=PdfIntersectX(),  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
-#   })
+  ThresholdDifference <- function( probability ) {
+    s <- userInputs() #'s' stands for sliders
+    difference <- CalculateUtilityNondiseased(probability, s$uTN, s$uFN) - 
+      CalculateUtilityNondiseased(probability, s$uTP, s$uFP)
+    return( difference )
+  }
+  ThresholdIntersectX <- reactive({  
+    return( uniroot(f=ThresholdDifference, interval=c(0,1) )$root )    
+  })
+  ThresholdIntersectY <- reactive({
+    CalculateUtilityNondiseased(ThresholdIntersectX(),  userInputs()$uTN, userInputs()$uFN)
+  })
   peakN <- reactive({
     CalculateNondiseasePdf(score=userInputs()$muN,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
   })
@@ -141,9 +147,16 @@ shinyServer(function(input, output, session) {
   })
   output$plotTxThreshold <- renderPlot({
     ds <- ProbabilityData()
+    s <- userInputs() #'s' stands for sliders
     g <- ggplot(ds, aes(x=Probability)) +
       geom_line(aes(y=UtilityNondiseased), size=4, alpha=.5, color=colorNondiseased) +
       geom_line(aes(y=UtilityDiseased), size=4, alpha=.5, color=colorDiseased) +
+#       annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorNondiseased) +
+#       annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorDiseased) +
+      annotate(geom="text", label="Utility of not treating, as if patient does not have the disease", x=0, y=s$uTN, hjust=0, color=colorNondiseased) +
+#       annotate(geom="text", label="Utility of not treating, as if patient does not have the disease", x=0, y=s$uTN, hjust=0, color=colorNondiseased) +
+  #       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
+      annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90) +
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
 #       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
