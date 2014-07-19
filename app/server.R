@@ -97,7 +97,12 @@ shinyServer(function(input, output, session) {
   }
   PdfIntersectX <- reactive({  
     searchRange <- range(c(userInputs()$muD + c(1,-1)*userInputs()$sigmaD, userInputs()$muN + c(1,-1)*userInputs()$sigmaD))
-    return( uniroot(f=PdfDifference, interval=searchRange )$root )    
+    u <- NULL
+    try(
+      u <- uniroot(f=PdfDifference, interval=searchRange),
+      silent = TRUE
+    )
+    return( ifelse(!is.null(u), u$root, NA_real_) )    
   })
   PdfIntersectY <- reactive({
     CalculateNondiseasePdf(score=PdfIntersectX(),  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
@@ -109,7 +114,13 @@ shinyServer(function(input, output, session) {
     return( difference )
   }
   ThresholdIntersectX <- reactive({  
-    return( uniroot(f=ThresholdDifference, interval=c(0,1) )$root )    
+#    return( uniroot(f=ThresholdDifference, interval=c(0,1) )$root )    
+    u <- NULL
+    try(
+      u <- uniroot(f=ThresholdDifference, interval=c(0,1)),
+      silent = TRUE
+    )
+    return( ifelse(!is.null(u), u$root, NA_real_) )  
   })
   ThresholdIntersectY <- reactive({
     CalculateUtilityNondiseased(ThresholdIntersectX(),  userInputs()$uTN, userInputs()$uFN)
@@ -149,19 +160,30 @@ shinyServer(function(input, output, session) {
     ds <- ProbabilityData()
     s <- userInputs() #'s' stands for sliders
     g <- ggplot(ds, aes(x=Probability)) +
-      geom_line(aes(y=UtilityNondiseased), size=4, alpha=.5, color=colorNondiseased) +
-      geom_line(aes(y=UtilityDiseased), size=4, alpha=.5, color=colorDiseased) +
-#       annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorNondiseased) +
-#       annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorDiseased) +
-      annotate(geom="text", label="Utility of not treating, as if patient does not have the disease", x=0, y=s$uTN, hjust=0, color=colorNondiseased) +
-#       annotate(geom="text", label="Utility of not treating, as if patient does not have the disease", x=0, y=s$uTN, hjust=0, color=colorNondiseased) +
-  #       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
-      annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90) +
+      geom_line(aes(y=UtilityNondiseased), size=4, alpha=.3, color=colorNondiseased) +
+      geom_line(aes(y=UtilityDiseased), size=4, alpha=.3, color=colorDiseased) +
+      annotate(geom="text", label="Utility of not treating, as if patient does not have the disease", x=.5, y=Inf, hjust=.5, vjust=2, color=colorNondiseased) +
+      annotate(geom="text", label="Utility of treating, as if patient has the disease", x=.5, y=-Inf, hjust=.5, vjust=-1, color=colorDiseased) +
+      
+      annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=colorNondiseased) +
+      annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=colorDiseased) +
+      annotate(geom="text", label="?u(FN)?", x=1, y=s$uFN, hjust=1, vjust=0, color=colorDiseased) +
+      annotate(geom="text", label="?u(TP)?", x=1, y=s$uTP, hjust=1, vjust=0, color=colorNondiseased) +
+      
+      #         annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
+#       annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90) +
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
 #       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
       theme_bw() +
       labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
+
+    thresholdIntersectX <- ThresholdIntersectX()
+    if( !is.na(thresholdIntersectX) ) {
+      g  <- g + 
+        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorNondiseased) +
+        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorDiseased)
+    }
     print(g)
   })
   

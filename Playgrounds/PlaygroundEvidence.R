@@ -35,8 +35,6 @@ ds$NondiseasedCdfL <- CalculateNondiseaseCdf(score=ds$Score,  muN, sigmaN, baseR
 ds$DiseasedCdfL <- CalculateDiseaseCdf(score=ds$Score, muD, sigmaD, baseRate=NA)
 ds$NondiseasedCdfR <- 1- ds$NondiseasedCdf #max(ds$NondiseasedCdf) - ds$NondiseasedCdf
 ds$DiseasedCdfR <- 1 - ds$DiseasedCdf #max(ds$DiseasedCdf) - ds$DiseasedCdf #Sensitivity; the 'R' stands for "right" of the point.
-# ds$Line <- NA_real_
-# ds$Constant <- NA_real_
 ds$LRInstant <- ds$DiseasedPdf / ds$NondiseasedPdf
 ds$LRPlus <- (ds$DiseasedCdfR)  / (ds$NondiseasedCdfR)
 ds$LRMinus <- (ds$DiseasedCdfL)  / (ds$NondiseasedCdfL)
@@ -48,7 +46,14 @@ FxToMinimize <- function( x ) {
 }
 searchRange <- range(c(muD + c(1,-1)*sigmaD, muN + c(1,-1)*sigmaD))
 
-# FxToMinimize(54)
+FxToMinimize(540)
+u <- NULL
+try(
+u <- uniroot(f=FxToMinimize, interval=c(67,69)),
+silent = TRUE
+)
+ifelse(!is.null(u), u$root, NA_real_)
+
 # intersectX <- optimize(f=FxToMinimize, interval=c(30, 80) )$minimum
 intersectX <- uniroot(f=FxToMinimize, interval=searchRange)$root
 intersectY <- CalculateNondiseasePdf(score=intersectX,  muN, sigmaN, baseRate=NA)
