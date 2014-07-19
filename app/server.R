@@ -13,7 +13,7 @@ require(RColorBrewer)
 
 #######################################
 ### Declare globals
-measurementRange <- c(0, 100)
+measurementRange <- c(-40, 100)
 stepWidthMeasurement <- 1
 stepWidthProbability <- .01
 colorNondiseased <- "blue3"
@@ -29,23 +29,26 @@ CalculateDiseasePdf <- function( score, mu, sigma, baseRate=NA ) {
   baseRate <- ifelse(is.na(baseRate), 1, baseRate) #Notice missing values are set to 1, not 0 like with nondiseased.
   return( dnorm(x=score, mean=mu, sd=sigma) * baseRate)
 }
-CalculateNondiseaseCdf <- function( score, baseRate, mu, sigma ) {
+CalculateNondiseaseCdf <- function( score, mu, sigma, baseRate=NA ) { # Specificity
   baseRate <- ifelse(is.na(baseRate), 0, baseRate) #Notice missing values are set to 0, not 1 like with diseased.
   return( pnorm(q=score, mean=mu, sd=sigma) * (1-baseRate) )
 }
-CalculateDiseaseCdf <- function( score, baseRate, mu, sigma ) {
+CalculateDiseaseCdf <- function( score, mu, sigma, baseRate=NA ) {
   baseRate <- ifelse(is.na(baseRate), 1, baseRate) #Notice missing values are set to 1, not 0 like with nondiseased.
   return( pnorm(q=score, mean=mu, sd=sigma) * (baseRate) )
 }
 CalculateUtilityNondiseased <- function( probability, uTN, uFN) {
-#   return( ((1 - probability) * uTN) + (probability * uFN) )
   return( approx(x=0:1, y=c(uTN, uFN), xout=probability)$y )
 }
 CalculateUtilityDiseased <- function( probability, uFP, uTP) {
-#   return( (probability * uTP) + ((1-probability) * uFP) )
   return( approx(x=0:1, y=c(uFP, uTP), xout=probability)$y )
 }
-
+CalculateSpecificity <- function( score, mu, sigma, baseRate=NA ) { #CalculateNondiseaseCdf
+  return( CalculateNondiseaseCdf(scores, mu, sigma, baseRate) )
+}
+CalculateSensitivity <- function( score, mu, sigma, baseRate=NA ) { #1 - CalculateDiseaseCdf
+  return( 1 - CalculateDiseaseCdf(scores, mu, sigma, baseRate) )
+}
 #######################################
 ### Load and tweak data
 
@@ -86,12 +89,8 @@ shinyServer(function(input, output, session) {
   ProbabilityData <- reactive({
     s <- userInputs()
     ds <- data.frame(Probability=seq(from=0, to=1, by=stepWidthProbability))
-    #     ds$UtilityDiseased <- (ds$Probability*s$uTP) + ((1-ds$Probability)*s$uFP)
-    #     ds$UtilityNondiseased <- ((1-ds$Probability)*s$uTN) + (ds$Probability*s$uFN)
-    #     ds$UtilityDiseased <- approx(x=0:1, y=c(s$uFP, s$uTP), xout=ds$Probability)$y
     ds$UtilityNondiseased <- CalculateUtilityNondiseased(probability=ds$Probability, uTN=s$uTN, uFN=s$uFN)
     ds$UtilityDiseased <- CalculateUtilityDiseased(probability=ds$Probability, uFP=s$uFP, uTP=s$uTP)
-  
     return( ds )
   })
   PdfDifference <- function( x ) {
@@ -110,6 +109,10 @@ shinyServer(function(input, output, session) {
   })
   PdfIntersectY <- reactive({
     CalculateNondiseasePdf(score=PdfIntersectX(),  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
+  })
+  
+  SpecificityAtCutoff <- reactive({
+    CalculateSpecificity( score=PdfIntersectX, baseRate, mu, sigma )
   })
   ThresholdDifference <- function( probability ) {
     s <- userInputs() #'s' stands for sliders
@@ -134,6 +137,9 @@ shinyServer(function(input, output, session) {
   peakD <- reactive({
     CalculateDiseasePdf(score=userInputs()$muD,  userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
   })
+  
+#   output$lblStatusBar <- reactive({ return( paste("Specificty: ", SpecificityAtCutoff()) ) })
+  
   output$plotPdf <- renderPlot({
     ds <- MeasurementData()
     g <- ggplot(ds, aes(x=Score)) +
