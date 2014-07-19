@@ -15,8 +15,11 @@ require(RColorBrewer)
 #######################################
 ### Declare globals
 measurementRange <- c(0, 100)
+stepWidthMeasurement <- 1
+stepWidthProbability <- .01
 colorNondiseased <- "blue3"
 colorDiseased <- "red3"
+
 
 #######################################
 ### Declare funcions that don't depend on reactives or user inputs.
@@ -52,15 +55,20 @@ shinyServer(function(input, output, session) {
       muN = input$muN,
       muD = input$muD,
       sigmaN = input$sigmaN,
-      sigmaD = input$sigmaD
+      sigmaD = input$sigmaD,
+      uTP = input$uTP,
+      uFN = input$uFN,
+      uFP = input$uFP,
+      uTN = input$uTN
     )
   })
-  ds <- reactive({
-    d <- data.frame(Score=seq(from=measurementRange[1], to=measurementRange[2], by=1))
-    d$NondiseasedPdf <- CalculateNondiseasePdf(score=d$Score,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
-    d$DiseasedPdf <- CalculateDiseasePdf(score=d$Score, userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
-    d$NondiseasedCdfL <- CalculateNondiseaseCdf(score=d$Score,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA) #Specificity; the 'L' stands for "left" of the point.
-    d$DiseasedCdfL <- CalculateDiseaseCdf(score=d$Score, userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
+  MeasurementData <- reactive({
+    s <- userInputs() #'S' stands for Sliders
+    d <- data.frame(Score=seq(from=measurementRange[1], to=measurementRange[2], by=stepWidthMeasurement))
+    d$NondiseasedPdf <- CalculateNondiseasePdf(score=d$Score,  s$muN, s$sigmaN, baseRate=NA)
+    d$DiseasedPdf <- CalculateDiseasePdf(score=d$Score, s$muD, s$sigmaD, baseRate=NA)
+    d$NondiseasedCdfL <- CalculateNondiseaseCdf(score=d$Score,  s$muN, s$sigmaN, baseRate=NA) #Specificity; the 'L' stands for "left" of the point.
+    d$DiseasedCdfL <- CalculateDiseaseCdf(score=d$Score, s$muD, s$sigmaD, baseRate=NA)
     d$NondiseasedCdfR <- 1- d$NondiseasedCdf #max(d$NondiseasedCdf) - d$NondiseasedCdf
     d$DiseasedCdfR <- 1 - d$DiseasedCdf #max(d$DiseasedCdf) - d$DiseasedCdf #Sensitivity; the 'R' stands for "right" of the point.
     d$LRInstant <- d$DiseasedPdf / d$NondiseasedPdf
@@ -69,54 +77,76 @@ shinyServer(function(input, output, session) {
     d$LRRatio <- d$LRPlus / d$LRMinus
     return( d )
   })
-  
-  FxToMinimize <- function( x ) {
+  ProbabilityData <- reactive({
+    s <- userInputs()
+    ds <- data.frame(Probability=seq(from=0, to=1, by=stepWidthProbability))
+    ds$UtilityDiseased <- (ds$Probability*s$uTP) + ((1-ds$Probability)*s$uFP)
+    ds$UtilityNondiseased <- ((1-ds$Probability)*s$uTN) + (ds$Probability*s$uFN)
+    return( ds )
+  })
+  PdfDifference <- function( x ) {
     difference <- CalculateNondiseasePdf(score=x,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA) - 
-                  CalculateDiseasePdf(score=x, userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
+      CalculateDiseasePdf(score=x, userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
     return( difference )
   }
-  
-  intersectX <- reactive({  
-    # searchRange <- c(0, 100) 
+  PdfIntersectX <- reactive({  
     searchRange <- range(c(userInputs()$muD + c(1,-1)*userInputs()$sigmaD, userInputs()$muN + c(1,-1)*userInputs()$sigmaD))
-    # message(searchRange)
-    return( uniroot(f=FxToMinimize, interval=searchRange )$root )    
+    return( uniroot(f=PdfDifference, interval=searchRange )$root )    
   })
-  intersectY <- reactive({
-    CalculateNondiseasePdf(score=intersectX(),  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
+  PdfIntersectY <- reactive({
+    CalculateNondiseasePdf(score=PdfIntersectX(),  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
   })
+#   ThresholdDifference <- function( x ) {
+#     difference <- CalculateNondiseasePdf(score=x,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA) - 
+#       CalculateDiseasePdf(score=x, userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
+#     return( difference )
+#   }
+#   ThresholdIntersectX <- reactive({  
+#     searchRange <- range(c(userInputs()$muD + c(1,-1)*userInputs()$sigmaD, userInputs()$muN + c(1,-1)*userInputs()$sigmaD))
+#     return( uniroot(f=PdfDifference, interval=searchRange )$root )    
+#   })
+#   ThresholdIntersectY <- reactive({
+#     CalculateNondiseasePdf(score=PdfIntersectX(),  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
+#   })
   peakN <- reactive({
     CalculateNondiseasePdf(score=userInputs()$muN,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
   })
   peakD <- reactive({
     CalculateDiseasePdf(score=userInputs()$muD,  userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
   })
-  
   output$plotPdf <- renderPlot({
-    d <- ds()
-    g <- ggplot(d, aes(x=Score)) +
+    ds <- MeasurementData()
+    g <- ggplot(ds, aes(x=Score)) +
       geom_line(aes(y=NondiseasedPdf), color=colorNondiseased, size=4, alpha=.5) +
       geom_line(aes(y=DiseasedPdf), color=colorDiseased, size=4, alpha=.5) +
-      annotate(geom="segment", x=intersectX(), y=intersectY(), xend=intersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorNondiseased) +
-      annotate(geom="segment", x=intersectX(), y=intersectY(), xend=intersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorDiseased) +
+      annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorNondiseased) +
+      annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorDiseased) +
       annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=-.5, color=colorNondiseased) +
       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
-      annotate(geom="text", label="Cutoff", x=intersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
+      annotate(geom="text", label="Cutoff", x=PdfIntersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
       theme_bw() +
       labs(title="PDFs", x="Diagnostic Score", y="Probability Density")
     print(g)
-  })
-  
+  })  
   output$plotRoc <- renderPlot({
-    d <- ds()
-    g <- ggplot(d, aes(x=1-NondiseasedCdfL, y=DiseasedCdfR)) +
+    ds <- MeasurementData()
+    g <- ggplot(ds, aes(x=1-NondiseasedCdfL, y=DiseasedCdfR)) +
       geom_line(size=4, alpha=.5) +
+      scale_x_continuous(label=scales::percent) +
+      scale_y_continuous(label=scales::percent) +
       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
-#       annotate(geom="segment", x=intersectX(), y=intersectY(), xend=intersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorNondiseased) +
-#       annotate(geom="segment", x=intersectX(), y=intersectY(), xend=intersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorDiseased) +
-#       annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=-.5, color=colorNondiseased) +
-#       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
-#       annotate(geom="text", label="Cutoff", x=intersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
+      theme_bw() +
+      labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
+    print(g)
+  })
+  output$plotTxThreshold <- renderPlot({
+    ds <- ProbabilityData()
+    g <- ggplot(ds, aes(x=Probability)) +
+      geom_line(aes(y=UtilityNondiseased), size=4, alpha=.5, color=colorNondiseased) +
+      geom_line(aes(y=UtilityDiseased), size=4, alpha=.5, color=colorDiseased) +
+      scale_x_continuous(label=scales::percent) +
+      scale_y_continuous(label=scales::percent) +
+#       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
       theme_bw() +
       labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
     print(g)
