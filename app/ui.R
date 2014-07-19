@@ -12,8 +12,8 @@ sliderWidth <- "100%"
 shinyUI(pageWithSidebar(
   headerPanel('Rob Hamm\'s SDT and Threshold Comparison'),
   sidebarPanel(
-    textOutput(outputId='lblSpecificity'),
-    textOutput(outputId='lblSensitivity'),
+    textOutput(outputId='lblSpecificity'), #TODO: add a tooltip with something like '(ie, the area of the blue curve left of the cutoff)'
+    textOutput(outputId='lblSensitivity'), #TODO: add a tooltip with something like '(ie, the area of the red curve right of the cutoff)'
     sliderInput(inputId="muN", label="Nondiseased Mean", min=0, max=100, value=0, step=1, width=sliderWidth),
     sliderInput(inputId="muD", label="Diseased Mean", min=0, max=100, value=25, step=1, width=sliderWidth),
     sliderInput(inputId="sigmaN", label="Nondiseased SD", min=5, max=40, value=10, step=1, width=sliderWidth),
@@ -24,6 +24,7 @@ shinyUI(pageWithSidebar(
     sliderInput(inputId="uTN", label="u(TN) = Utility of a True, Negative Decision to Treat", min=0, max=1, value=.99, step=.01, width=sliderWidth)    
   ),
   mainPanel(
+    plotOutput('plotBayesian'),
     plotOutput('plotPdf'),
     plotOutput('plotTxThreshold'),
     plotOutput('plotRoc')

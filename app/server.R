@@ -16,9 +16,8 @@ require(RColorBrewer)
 measurementRange <- c(-40, 100)
 stepWidthMeasurement <- 1
 stepWidthProbability <- .01
-colorNondiseased <- "blue3"
-colorDiseased <- "red3"
-
+paletteDisease <- c("T"="red3", "F"="blue3")
+paletteTest <- RColorBrewer::brewer.pal(n=2, name="Accent"); names(paletteTest) <- c("P", "N")
 #######################################
 ### Declare funcions that don't depend on reactives or user inputs.
 CalculateNondiseasePdf <- function( score, mu, sigma, baseRate=NA ) {
@@ -91,6 +90,9 @@ shinyServer(function(input, output, session) {
     ds <- data.frame(Probability=seq(from=0, to=1, by=stepWidthProbability))
     ds$UtilityNondiseased <- CalculateUtilityNondiseased(probability=ds$Probability, uTN=s$uTN, uFN=s$uFN)
     ds$UtilityDiseased <- CalculateUtilityDiseased(probability=ds$Probability, uFP=s$uFP, uTP=s$uTP)
+    ds$Prior <- ds$Probability
+    ds$PosteriorPositive <- (SensitivityAtCutoff() * ds$Prior) / ((SensitivityAtCutoff() * ds$Prior)+((1-SpecificityAtCutoff()) * (1-ds$Prior)))
+    ds$PosteriorNegative <- ((1-SensitivityAtCutoff()) * ds$Prior) / (((1-SensitivityAtCutoff()) * ds$Prior)+(SpecificityAtCutoff() * (1-ds$Prior)))
     return( ds )
   })
   PdfDifference <- function( x ) {
@@ -143,18 +145,35 @@ shinyServer(function(input, output, session) {
     CalculateDiseasePdf(score=userInputs()$muD,  userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
   })
   
-  output$lblSpecificity <- reactive({ return( paste("Specificty: ", round(SpecificityAtCutoff(), 3)) ) })
-  output$lblSensitivity <- reactive({ return( paste("Sensitivity: ", round(SensitivityAtCutoff(), 3)) ) })
+  output$lblSpecificity <- reactive({ return( paste("Specificity at Cutoff: ", round(SpecificityAtCutoff(), 3)) ) })
+  output$lblSensitivity <- reactive({ return( paste("Sensitivity at Cutoff: ", round(SensitivityAtCutoff(), 3)) ) })
   
+  output$plotBayesian <- renderPlot({
+    ds <- ProbabilityData()
+    g <- ggplot(ds, aes(x=Prior)) +
+      geom_path(aes(y=PosteriorPositive), color=paletteTest["P"], size=4, alpha=.5, lineend="round") +
+      geom_path(aes(y=PosteriorNegative), color=paletteTest["N"], size=4, alpha=.5, lineend="round") +
+      annotate(geom="segment", x=0, y=0, xend=1, yend=1, size=2, alpha=.2, lineend="round") +
+      annotate(geom="text", label="probability given\npositive test", x=0, y=1, hjust=0, vjust=1, color=paletteTest["P"]) +
+      annotate(geom="text", label="probability given\nnegative test", x=1, y=0, hjust=1, vjust=0, color=paletteTest["N"]) +
+      annotate(geom="text", label="if no test", x=.5, y=.5, hjust=.5, angle=45, color="gray30", alpha=.5) +
+#       annotate(geom="text", label="Cutoff", x=PdfIntersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
+      scale_x_continuous(label=scales::percent) +
+      scale_y_continuous(label=scales::percent) +
+      coord_fixed() +
+      theme_bw() +
+      labs(title="Bayesian Graph with Treatment Threshold", x="Pretest Probability", y="Postest Probability")
+    print(g)
+  }) 
   output$plotPdf <- renderPlot({
     ds <- MeasurementData()
     g <- ggplot(ds, aes(x=Score)) +
-      geom_line(aes(y=NondiseasedPdf), color=colorNondiseased, size=4, alpha=.5) +
-      geom_line(aes(y=DiseasedPdf), color=colorDiseased, size=4, alpha=.5) +
-      annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorNondiseased) +
-      annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=colorDiseased) +
-      annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=-.5, color=colorNondiseased) +
-      annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=colorDiseased) +
+      geom_path(aes(y=NondiseasedPdf), color=paletteDisease["F"], size=4, alpha=.5, lineend="round") +
+      geom_path(aes(y=DiseasedPdf), color=paletteDisease["T"], size=4, alpha=.5, lineend="round") +
+      annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["F"]) +
+      annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["T"]) +
+      annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=-.5, color=paletteDisease["F"]) +
+      annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=paletteDisease["T"]) +
       annotate(geom="text", label="Cutoff", x=PdfIntersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
       theme_bw() +
       labs(title="PDFs", x="Diagnostic Score", y="Probability Density")
@@ -163,7 +182,7 @@ shinyServer(function(input, output, session) {
   output$plotRoc <- renderPlot({
     ds <- MeasurementData()
     g <- ggplot(ds, aes(x=1-NondiseasedCdfL, y=DiseasedCdfR)) +
-      geom_line(size=4, alpha=.5) +
+      geom_path(size=4, alpha=.5, lineend="round") +
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
@@ -175,15 +194,15 @@ shinyServer(function(input, output, session) {
     ds <- ProbabilityData()
     s <- userInputs() #'s' stands for sliders
     g <- ggplot(ds, aes(x=Probability)) +
-      geom_line(aes(y=UtilityNondiseased), size=4, alpha=.3, color=colorNondiseased, lineend="mitre") +
-      geom_line(aes(y=UtilityDiseased), size=4, alpha=.3, color=colorDiseased) +
-      annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=colorNondiseased, linespace=-1) +
-      annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=colorDiseased, linespace=4) +
+      geom_path(aes(y=UtilityNondiseased), size=4, alpha=.3, color=paletteDisease["F"], lineend="round") +
+      geom_path(aes(y=UtilityDiseased), size=4, alpha=.3, color=paletteDisease["T"], lineend="round") +
+      annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=paletteDisease["F"], linespace=-1) +
+      annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=paletteDisease["T"], linespace=4) +
       
-      annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=colorNondiseased) +
-      annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=colorDiseased) +
-      annotate(geom="text", label="u(FN)", x=1, y=s$uFN, hjust=1, vjust=0, color=colorNondiseased) +
-      annotate(geom="text", label="u(TP)", x=1, y=s$uTP, hjust=1, vjust=0, color=colorDiseased) +
+      annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=paletteDisease["F"]) +
+      annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=paletteDisease["T"]) +
+      annotate(geom="text", label="u(FN)", x=1, y=s$uFN, hjust=1, vjust=0, color=paletteDisease["F"]) +
+      annotate(geom="text", label="u(TP)", x=1, y=s$uTP, hjust=1, vjust=0, color=paletteDisease["T"]) +
       
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
@@ -194,8 +213,8 @@ shinyServer(function(input, output, session) {
 
     if( !is.na(ThresholdIntersectX()) ) {
       g  <- g + 
-        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorNondiseased) +
-        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorDiseased) +
+        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=paletteDisease["F"]) +
+        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=paletteDisease["T"]) +
         annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90)
     }
     print(g)
