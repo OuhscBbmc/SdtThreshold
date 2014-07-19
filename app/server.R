@@ -41,7 +41,7 @@ CalculateUtilityNondiseased <- function( probability, uTN, uFN) {
 #   return( ((1 - probability) * uTN) + (probability * uFN) )
   return( approx(x=0:1, y=c(uTN, uFN), xout=probability)$y )
 }
-CalculateUtilityDiseased <- function( probability, uTP, uFP) {
+CalculateUtilityDiseased <- function( probability, uFP, uTP) {
 #   return( (probability * uTP) + ((1-probability) * uFP) )
   return( approx(x=0:1, y=c(uFP, uTP), xout=probability)$y )
 }
@@ -90,7 +90,7 @@ shinyServer(function(input, output, session) {
     #     ds$UtilityNondiseased <- ((1-ds$Probability)*s$uTN) + (ds$Probability*s$uFN)
     #     ds$UtilityDiseased <- approx(x=0:1, y=c(s$uFP, s$uTP), xout=ds$Probability)$y
     ds$UtilityNondiseased <- CalculateUtilityNondiseased(probability=ds$Probability, uTN=s$uTN, uFN=s$uFN)
-    ds$UtilityDiseased <- CalculateUtilityDiseased(probability=ds$Probability, uTP=s$uTP, uFP=s$uFP)
+    ds$UtilityDiseased <- CalculateUtilityDiseased(probability=ds$Probability, uFP=s$uFP, uTP=s$uTP)
   
     return( ds )
   })
@@ -114,7 +114,7 @@ shinyServer(function(input, output, session) {
   ThresholdDifference <- function( probability ) {
     s <- userInputs() #'s' stands for sliders
     difference <- CalculateUtilityNondiseased(probability, uTN=s$uTN, uFN=s$uFN) - 
-      CalculateUtilityDiseased(probability, uTP=s$uTP, uFP=s$uFP)
+      CalculateUtilityDiseased(probability, uFP=s$uFP, uTP=s$uTP)
     return( difference )
   }
   ThresholdIntersectX <- reactive({
@@ -165,8 +165,8 @@ shinyServer(function(input, output, session) {
     g <- ggplot(ds, aes(x=Probability)) +
       geom_line(aes(y=UtilityNondiseased), size=4, alpha=.3, color=colorNondiseased, lineend="mitre") +
       geom_line(aes(y=UtilityDiseased), size=4, alpha=.3, color=colorDiseased) +
-      annotate(geom="text", label="Utility of not treating, as if patient does not have the disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=colorNondiseased) +
-      annotate(geom="text", label="Utility of treating, as if patient has the disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=colorDiseased) +
+      annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=colorNondiseased, linespace=-1) +
+      annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=colorDiseased, linespace=4) +
       
       annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=colorNondiseased) +
       annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=colorDiseased) +
@@ -175,14 +175,16 @@ shinyServer(function(input, output, session) {
       
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
-      # coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
+      coord_cartesian(xlim=c(1.02,-.02)) +
+      #       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
       theme_bw() +
-      labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
+      labs(title="Treatment Threshold Probability", x="Probability Patient has the Disease", y="Expected Utility of Treatment")
 
     if( !is.na(ThresholdIntersectX()) ) {
       g  <- g + 
         annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorNondiseased) +
-        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorDiseased)
+        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=colorDiseased) +
+        annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90)
     }
     print(g)
   })
