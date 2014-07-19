@@ -43,10 +43,10 @@ CalculateUtilityNondiseased <- function( probability, uTN, uFN) {
 CalculateUtilityDiseased <- function( probability, uFP, uTP) {
   return( approx(x=0:1, y=c(uFP, uTP), xout=probability)$y )
 }
-CalculateSpecificity <- function( score, mu, sigma, baseRate=NA ) { #CalculateNondiseaseCdf
+CalculateSpecificity <- function( scores, mu, sigma, baseRate=NA ) { #CalculateNondiseaseCdf
   return( CalculateNondiseaseCdf(scores, mu, sigma, baseRate) )
 }
-CalculateSensitivity <- function( score, mu, sigma, baseRate=NA ) { #1 - CalculateDiseaseCdf
+CalculateSensitivity <- function( scores, mu, sigma, baseRate=NA ) { #1 - CalculateDiseaseCdf
   return( 1 - CalculateDiseaseCdf(scores, mu, sigma, baseRate) )
 }
 #######################################
@@ -112,7 +112,12 @@ shinyServer(function(input, output, session) {
   })
   
   SpecificityAtCutoff <- reactive({
-    CalculateSpecificity( score=PdfIntersectX, baseRate, mu, sigma )
+    s <- userInputs()
+    CalculateSpecificity( scores=PdfIntersectX(), mu=s$muN, sigma=s$sigmaN, baseRate=NA )
+  })
+  SensitivityAtCutoff <- reactive({
+    s <- userInputs()
+    CalculateSensitivity( scores=PdfIntersectX(), mu=s$muD, sigma=s$sigmaD, baseRate=NA )
   })
   ThresholdDifference <- function( probability ) {
     s <- userInputs() #'s' stands for sliders
@@ -138,7 +143,8 @@ shinyServer(function(input, output, session) {
     CalculateDiseasePdf(score=userInputs()$muD,  userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
   })
   
-#   output$lblStatusBar <- reactive({ return( paste("Specificty: ", SpecificityAtCutoff()) ) })
+  output$lblSpecificity <- reactive({ return( paste("Specificty: ", round(SpecificityAtCutoff(), 3)) ) })
+  output$lblSensitivity <- reactive({ return( paste("Sensitivity: ", round(SensitivityAtCutoff(), 3)) ) })
   
   output$plotPdf <- renderPlot({
     ds <- MeasurementData()
@@ -193,6 +199,5 @@ shinyServer(function(input, output, session) {
         annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90)
     }
     print(g)
-  })
-  
+  })  
 })

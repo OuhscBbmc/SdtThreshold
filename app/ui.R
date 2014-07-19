@@ -12,6 +12,8 @@ sliderWidth <- "100%"
 shinyUI(pageWithSidebar(
   headerPanel('Rob Hamm\'s SDT and Threshold Comparison'),
   sidebarPanel(
+    textOutput(outputId='lblSpecificity'),
+    textOutput(outputId='lblSensitivity'),
     sliderInput(inputId="muN", label="Nondiseased Mean", min=0, max=100, value=0, step=1, width=sliderWidth),
     sliderInput(inputId="muD", label="Diseased Mean", min=0, max=100, value=25, step=1, width=sliderWidth),
     sliderInput(inputId="sigmaN", label="Nondiseased SD", min=5, max=40, value=10, step=1, width=sliderWidth),
