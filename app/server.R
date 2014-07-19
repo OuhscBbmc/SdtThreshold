@@ -38,10 +38,12 @@ CalculateDiseaseCdf <- function( score, baseRate, mu, sigma ) {
   return( pnorm(q=score, mean=mu, sd=sigma) * (baseRate) )
 }
 CalculateUtilityNondiseased <- function( probability, uTN, uFN) {
-  return( ((1 - probability) * uTN) + (probability * uFN) )
+#   return( ((1 - probability) * uTN) + (probability * uFN) )
+  return( approx(x=0:1, y=c(uTN, uFN), xout=probability)$y )
 }
 CalculateUtilityDiseased <- function( probability, uTP, uFP) {
-  return( (probability * uTP) + ((1-probability) * uFP) )
+#   return( (probability * uTP) + ((1-probability) * uFP) )
+  return( approx(x=0:1, y=c(uFP, uTP), xout=probability)$y )
 }
 
 #######################################
@@ -84,8 +86,12 @@ shinyServer(function(input, output, session) {
   ProbabilityData <- reactive({
     s <- userInputs()
     ds <- data.frame(Probability=seq(from=0, to=1, by=stepWidthProbability))
-    ds$UtilityDiseased <- (ds$Probability*s$uTP) + ((1-ds$Probability)*s$uFP)
-    ds$UtilityNondiseased <- ((1-ds$Probability)*s$uTN) + (ds$Probability*s$uFN)
+    #     ds$UtilityDiseased <- (ds$Probability*s$uTP) + ((1-ds$Probability)*s$uFP)
+    #     ds$UtilityNondiseased <- ((1-ds$Probability)*s$uTN) + (ds$Probability*s$uFN)
+    #     ds$UtilityDiseased <- approx(x=0:1, y=c(s$uFP, s$uTP), xout=ds$Probability)$y
+    ds$UtilityNondiseased <- CalculateUtilityNondiseased(probability=ds$Probability, uTN=s$uTN, uFN=s$uFN)
+    ds$UtilityDiseased <- CalculateUtilityDiseased(probability=ds$Probability, uTP=s$uTP, uFP=s$uFP)
+  
     return( ds )
   })
   PdfDifference <- function( x ) {
@@ -107,8 +113,8 @@ shinyServer(function(input, output, session) {
   })
   ThresholdDifference <- function( probability ) {
     s <- userInputs() #'s' stands for sliders
-    difference <- CalculateUtilityNondiseased(probability, s$uTN, s$uFN) - 
-      CalculateUtilityNondiseased(probability, s$uTP, s$uFP)
+    difference <- CalculateUtilityNondiseased(probability, uTN=s$uTN, uFN=s$uFN) - 
+      CalculateUtilityDiseased(probability, uTP=s$uTP, uFP=s$uFP)
     return( difference )
   }
   ThresholdIntersectX <- reactive({
@@ -157,15 +163,15 @@ shinyServer(function(input, output, session) {
     ds <- ProbabilityData()
     s <- userInputs() #'s' stands for sliders
     g <- ggplot(ds, aes(x=Probability)) +
-      geom_line(aes(y=UtilityNondiseased), size=4, alpha=.3, color=colorNondiseased) +
+      geom_line(aes(y=UtilityNondiseased), size=4, alpha=.3, color=colorNondiseased, lineend="mitre") +
       geom_line(aes(y=UtilityDiseased), size=4, alpha=.3, color=colorDiseased) +
-      annotate(geom="text", label="Utility of not treating, as if patient does not have the disease", x=.5, y=Inf, hjust=.5, vjust=2, color=colorNondiseased) +
-      annotate(geom="text", label="Utility of treating, as if patient has the disease", x=.5, y=-Inf, hjust=.5, vjust=-1, color=colorDiseased) +
+      annotate(geom="text", label="Utility of not treating, as if patient does not have the disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=colorNondiseased) +
+      annotate(geom="text", label="Utility of treating, as if patient has the disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=colorDiseased) +
       
       annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=colorNondiseased) +
       annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=colorDiseased) +
-      annotate(geom="text", label="?u(FN)?", x=1, y=s$uFN, hjust=1, vjust=0, color=colorDiseased) +
-      annotate(geom="text", label="?u(TP)?", x=1, y=s$uTP, hjust=1, vjust=0, color=colorNondiseased) +
+      annotate(geom="text", label="u(FN)", x=1, y=s$uFN, hjust=1, vjust=0, color=colorNondiseased) +
+      annotate(geom="text", label="u(TP)", x=1, y=s$uTP, hjust=1, vjust=0, color=colorDiseased) +
       
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +

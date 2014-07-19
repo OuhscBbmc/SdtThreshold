@@ -17,13 +17,13 @@ shinyUI(pageWithSidebar(
     sliderInput(inputId="sigmaN", label="Nondiseased SD", min=0, max=40, value=10, step=1, width=sliderWidth),
     sliderInput(inputId="sigmaD", label="Diseased SD", min=0, max=40, value=7, step=1, width=sliderWidth),
     sliderInput(inputId="uTP", label="u(TP) = Utility of a True, Positive Decision to Treat", min=0, max=1, value=.90, step=.01, width=sliderWidth),
-    sliderInput(inputId="uFN", label="u(FN) = Utility of a False, Negative Decision to Treat", min=0, max=1, value=.85, step=.01, width=sliderWidth),
+    sliderInput(inputId="uFN", label="u(FN) = Utility of a False, Negative Decision to Treat", min=0, max=1, value=.80, step=.01, width=sliderWidth),
     sliderInput(inputId="uFP", label="u(FP) = Utility of a False, Positive Decision to Treat", min=0, max=1, value=.95, step=.01, width=sliderWidth),
     sliderInput(inputId="uTN", label="u(TN) = Utility of a True, Negative Decision to Treat", min=0, max=1, value=.99, step=.01, width=sliderWidth)    
   ),
   mainPanel(
     plotOutput('plotPdf'),
-    plotOutput('plotRoc'),
-    plotOutput('plotTxThreshold')
+    plotOutput('plotTxThreshold'),
+    plotOutput('plotRoc')
   )
 ))
