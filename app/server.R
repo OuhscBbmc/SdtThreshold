@@ -176,10 +176,14 @@ shinyServer(function(input, output, session) {
     )
     return( ifelse(!is.null(u), u$root, NA_real_) )  
   })
-  output$lblCutoff <- reactive({ return( paste("Cutoff:", round(PdfIntersectX())) ) })
-  output$lblSpecificity <- reactive({ return( paste("Specificity at Cutoff:", round(SpecificityAtCutoff(), 3)) ) })
-  output$lblSensitivity <- reactive({ return( paste("Sensitivity at Cutoff:", round(SensitivityAtCutoff(), 3)) ) })
-  output$lblTxThreshold <- reactive({ return( paste("Treatment Threshold:", round(ThresholdIntersectX(), 3)) ) })
+  
+  #TODO: make these into one table, instead of loose labels
+  output$lblCutoff <- reactive({ return( paste("Diagnostic Cutoff:", round(PdfIntersectX())) ) })
+  output$lblSpecificity <- reactive({ return( paste("Specificity at Cutoff:", scales::percent(round(SpecificityAtCutoff(), 3))) ) })
+  output$lblSensitivity <- reactive({ return( paste("Sensitivity at Cutoff:", scales::percent(round(SensitivityAtCutoff(), 3))) ) })
+  output$lblTxThreshold <- reactive({ return( paste("Treatment Threshold:", scales::percent(round(ThresholdIntersectX(), 3))) ) })
+  output$lblNoTestTestThreshold <- reactive({ return( paste("NoTest-Test Threshold:", scales::percent(round(ThresholdPositiveTestIntersect(), 3))) ) })
+  output$lblTestTreatThreshold <- reactive({ return( paste("Test-Treat Threshold:", scales::percent(round(ThresholdNegativeTestIntersect(), 3))) ) })
   
   output$plotBayesian <- renderPlot({
     thresholdPositiveTestIntersectX <- ThresholdPositiveTestIntersect()
