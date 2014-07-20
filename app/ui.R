@@ -9,7 +9,7 @@ require(ggplot2)
 ############################
 ### Main UI Function
 sliderWidth <- "100%"
-shinyUI(fluidPage( title="SDT and Thresholds", theme="bootstrap.css",
+shinyUI(pageWithSidebar(
   headerPanel('Rob Hamm\'s SDT and Threshold Comparison'),
   sidebarPanel(
     h3('Derived Values'),
