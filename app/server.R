@@ -19,6 +19,8 @@ stepWidthMeasurement <- 1
 stepWidthProbability <- .01
 paletteDisease <- RColorBrewer::brewer.pal(n=3, name="Set1")[1:2]; names(paletteDisease) <- c("T", "F")
 paletteTest <- RColorBrewer::brewer.pal(n=3, name="Accent")[2:3]; names(paletteTest) <- c("P", "N")
+muN <- 0
+sigmaN <- 10
 #######################################
 ### Declare funcions that don't depend on reactives or user inputs.
 CalculateNondiseasePdf <- function( score, mu, sigma, baseRate=NA ) {
@@ -73,9 +75,9 @@ shinyServer(function(input, output, session) {
   # User inputs of predictor values.
   userInputs <- reactive({
     list(
-      muN = input$muN,
+      # muN = input$muN,
       muD = input$muD,
-      sigmaN = input$sigmaN,
+      # sigmaN = input$sigmaN,
       sigmaD = input$sigmaD,
       uTP = input$uTP,
       uFN = input$uFN,
@@ -86,9 +88,9 @@ shinyServer(function(input, output, session) {
   MeasurementData <- reactive({
     s <- userInputs() #'S' stands for Sliders
     d <- data.frame(Score=seq(from=measurementRange[1], to=measurementRange[2], by=stepWidthMeasurement))
-    d$NondiseasedPdf <- CalculateNondiseasePdf(score=d$Score,  s$muN, s$sigmaN, baseRate=NA)
+    d$NondiseasedPdf <- CalculateNondiseasePdf(score=d$Score,  muN, sigmaN, baseRate=NA)
     d$DiseasedPdf <- CalculateDiseasePdf(score=d$Score, s$muD, s$sigmaD, baseRate=NA)
-    d$NondiseasedCdfL <- CalculateNondiseaseCdf(score=d$Score,  s$muN, s$sigmaN, baseRate=NA) #Specificity; the 'L' stands for "left" of the point.
+    d$NondiseasedCdfL <- CalculateNondiseaseCdf(score=d$Score,  muN, sigmaN, baseRate=NA) #Specificity; the 'L' stands for "left" of the point.
     d$DiseasedCdfL <- CalculateDiseaseCdf(score=d$Score, s$muD, s$sigmaD, baseRate=NA)
     d$NondiseasedCdfR <- 1- d$NondiseasedCdf #max(d$NondiseasedCdf) - d$NondiseasedCdf
     d$DiseasedCdfR <- 1 - d$DiseasedCdf #max(d$DiseasedCdf) - d$DiseasedCdf #Sensitivity; the 'R' stands for "right" of the point.
@@ -109,12 +111,12 @@ shinyServer(function(input, output, session) {
     return( ds )
   })
   PdfDifference <- function( x ) {
-    difference <- CalculateNondiseasePdf(score=x,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA) - 
+    difference <- CalculateNondiseasePdf(score=x, muN, sigmaN, baseRate=NA) - 
       CalculateDiseasePdf(score=x, userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
     return( difference )
   }
   PdfIntersectX <- reactive({  
-    searchRange <- range(c(userInputs()$muD + c(1,-1)*userInputs()$sigmaD, userInputs()$muN + c(1,-1)*userInputs()$sigmaD))
+    searchRange <- range(c(userInputs()$muD + c(1,-1)*userInputs()$sigmaD, muN + c(1,-1)*userInputs()$sigmaD))
     u <- NULL
     try(
       u <- uniroot(f=PdfDifference, interval=searchRange),
@@ -123,15 +125,14 @@ shinyServer(function(input, output, session) {
     return( ifelse(!is.null(u), u$root, NA_real_) )    
   })
   PdfIntersectY <- reactive({
-    CalculateNondiseasePdf(score=PdfIntersectX(),  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
+    CalculateNondiseasePdf(score=PdfIntersectX(), mu=muN, sigma=sigmaN, baseRate=NA)
   })
   SpecificityAtCutoff <- reactive({
-    s <- userInputs()
-    CalculateSpecificity( scores=PdfIntersectX(), mu=s$muN, sigma=s$sigmaN, baseRate=NA )
+    CalculateSpecificity(scores=PdfIntersectX(), mu=muN, sigma=sigmaN, baseRate=NA )
   })
   SensitivityAtCutoff <- reactive({
     s <- userInputs()
-    CalculateSensitivity( scores=PdfIntersectX(), mu=s$muD, sigma=s$sigmaD, baseRate=NA )
+    CalculateSensitivity(scores=PdfIntersectX(), mu=s$muD, sigma=s$sigmaD, baseRate=NA )
   })
   ThresholdDifference <- function( probability ) {
     s <- userInputs() #'s' stands for sliders
@@ -152,7 +153,7 @@ shinyServer(function(input, output, session) {
     CalculateUtilityNondiseased(ThresholdIntersectX(),  userInputs()$uTN, userInputs()$uFN)
   })
   peakN <- reactive({
-    CalculateNondiseasePdf(score=userInputs()$muN,  userInputs()$muN, userInputs()$sigmaN, baseRate=NA)
+    CalculateNondiseasePdf(score=muN, muN, sigmaN, baseRate=NA)
   })
   peakD <- reactive({
     CalculateDiseasePdf(score=userInputs()$muD,  userInputs()$muD, userInputs()$sigmaD, baseRate=NA)
@@ -192,7 +193,7 @@ shinyServer(function(input, output, session) {
     g <- ggplot(ds, aes(x=Prior)) +
       geom_path(aes(y=PosteriorPositive), color=paletteTest["P"], size=4, alpha=.5, lineend="round") +
       geom_path(aes(y=PosteriorNegative), color=paletteTest["N"], size=4, alpha=.5, lineend="round") +
-      geom_hline(yintercept=ThresholdIntersectX(), linetype="F3", color="gray30", alpha=.5)+
+      geom_hline(yintercept=ThresholdIntersectX(), linetype="F3", color="gray30", alpha=.5) +
       annotate(geom="segment", x=0, y=0, xend=1, yend=1, size=2, alpha=.2, lineend="round") +
       annotate(geom="segment", x=thresholdPositiveTestIntersectX, y=thresholdPositiveTestIntersectX, xend=thresholdPositiveTestIntersectX, yend=thresholdPositiveTestIntersectY, size=2, alpha=.2,lineend="round") +
       annotate(geom="segment", x=thresholdNegativeTestIntersectX, y=thresholdNegativeTestIntersectX, xend=thresholdNegativeTestIntersectX, yend=thresholdNegativeTestIntersectY, size=2, alpha=.2, lineend="round") +
@@ -211,14 +212,17 @@ shinyServer(function(input, output, session) {
     print(g)
   }) 
   output$plotPdf <- renderPlot({
+    s <- userInputs() #'s' stands for sliders
     ds <- MeasurementData()
     g <- ggplot(ds, aes(x=Score)) +
       geom_path(aes(y=NondiseasedPdf), color=paletteDisease["F"], size=4, alpha=.3, lineend="round") +
       geom_path(aes(y=DiseasedPdf), color=paletteDisease["T"], size=4, alpha=.3, lineend="round") +
       annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["F"]) +
       annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["T"]) +
-      annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=0, color=paletteDisease["F"]) +
+      annotate(geom="text", label="Nondiseased", x=muN, y=peakN(), vjust=0, color=paletteDisease["F"]) +
       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=0, color=paletteDisease["T"]) +
+      annotate(geom="text", label=paste0("italic(N)(", muN, ", ", sigmaN, ")"), x=muN, y=peakN(), vjust=1.05, color=paletteDisease["F"], parse=T) +
+      annotate(geom="text", label=paste0("italic(N)(", s$muD, ", ", s$sigmaD, ")"), x=s$muD, y=peakD(), vjust=1.05, color=paletteDisease["T"], parse=T) +
       annotate(geom="text", label="Cutoff", x=PdfIntersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
       appTheme +
       labs(title="PDFs", x="Diagnostic Score", y="Probability Density")
@@ -252,7 +256,7 @@ shinyServer(function(input, output, session) {
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
       coord_cartesian(xlim=c(1.02,-.02)) +
-      #       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
+      # coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
       appTheme +
       labs(title="Treatment Threshold Probability", x="Probability Patient has the Disease", y="Expected Utility of Treatment")
 
