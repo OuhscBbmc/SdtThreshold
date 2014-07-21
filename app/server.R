@@ -217,12 +217,12 @@ shinyServer(function(input, output, session) {
   output$plotPdf <- renderPlot({
     ds <- MeasurementData()
     g <- ggplot(ds, aes(x=Score)) +
-      geom_path(aes(y=NondiseasedPdf), color=paletteDisease["F"], size=4, alpha=.5, lineend="round") +
-      geom_path(aes(y=DiseasedPdf), color=paletteDisease["T"], size=4, alpha=.5, lineend="round") +
+      geom_path(aes(y=NondiseasedPdf), color=paletteDisease["F"], size=4, alpha=.3, lineend="round") +
+      geom_path(aes(y=DiseasedPdf), color=paletteDisease["T"], size=4, alpha=.3, lineend="round") +
       annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["F"]) +
       annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["T"]) +
-      annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=-.5, color=paletteDisease["F"]) +
-      annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=-.5, color=paletteDisease["T"]) +
+      annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=0, color=paletteDisease["F"]) +
+      annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=0, color=paletteDisease["T"]) +
       annotate(geom="text", label="Cutoff", x=PdfIntersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
       theme_bw() +
       labs(title="PDFs", x="Diagnostic Score", y="Probability Density")
