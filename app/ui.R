@@ -16,13 +16,10 @@ shinyUI(fluidPage(
       width = 3,
       wellPanel(
         h3('Derived Values'),
-        textOutput(outputId='lblCutoff'), #TODO: add a tooltip
-        textOutput(outputId='lblSpecificity'), #TODO: add a tooltip with something like '(ie, the area of the blue curve left of the cutoff)'
-        textOutput(outputId='lblSensitivity'), #TODO: add a tooltip with something like '(ie, the area of the red curve right of the cutoff)'
-        textOutput(outputId='lblTxThreshold'), #TODO: add a tooltip
-        textOutput(outputId='lblNoTestTestThreshold'), #TODO: add a tooltip
-        textOutput(outputId='lblTestTreatThreshold'), #TODO: add a tooltip
-        
+        tableOutput('Derived'), #TODO: add tooltips
+        #TODO: add a tooltip with something like '(ie, the area of the blue curve left of the cutoff)'
+        #TODO: add a tooltip with something like '(ie, the area of the red curve right of the cutoff)'
+    
         h3('Specified Values'),
         sliderInput(inputId="muN", label="Nondiseased Mean", min=0, max=100, value=0, step=1, width=sliderWidth),
         sliderInput(inputId="muD", label="Diseased Mean", min=0, max=100, value=25, step=1, width=sliderWidth),

@@ -7,6 +7,7 @@ require(ggplot2)
 require(ggthemes)
 require(colorspace)
 require(RColorBrewer)
+require(xtable)
 
 #######################################
 ### Declare paths to external files
@@ -54,6 +55,12 @@ CalculatePosteriorPositive <- function( prior, sensitivity, specificity ) {
 CalculatePosteriorNegative <- function( prior, sensitivity, specificity ) {
   return( ((1-sensitivity) * prior) / (((1-sensitivity) * prior)+(specificity * (1-prior))) )
 }
+appTheme <- theme_bw() +
+  theme(axis.text = element_text(colour="gray40")) +
+  theme(axis.title = element_text(colour="gray40")) +
+  theme(panel.border = element_rect(colour="gray80")) +
+  theme(axis.ticks = element_line(colour="gray80")) + 
+  theme(axis.ticks.length = grid::unit(0, "cm"))
 #######################################
 ### Load and tweak data
 
@@ -97,8 +104,6 @@ shinyServer(function(input, output, session) {
     ds$UtilityNondiseased <- CalculateUtilityNondiseased(probability=ds$Probability, uTN=s$uTN, uFN=s$uFN)
     ds$UtilityDiseased <- CalculateUtilityDiseased(probability=ds$Probability, uFP=s$uFP, uTP=s$uTP)
     ds$Prior <- ds$Probability
-    # ds$PosteriorPositive <- (SensitivityAtCutoff() * ds$Prior) / ((SensitivityAtCutoff() * ds$Prior)+((1-SpecificityAtCutoff()) * (1-ds$Prior)))
-    # ds$PosteriorNegative <- ((1-SensitivityAtCutoff()) * ds$Prior) / (((1-SensitivityAtCutoff()) * ds$Prior)+(SpecificityAtCutoff() * (1-ds$Prior)))
     ds$PosteriorPositive <- CalculatePosteriorPositive(ds$Prior, SensitivityAtCutoff(), SpecificityAtCutoff())
     ds$PosteriorNegative <- CalculatePosteriorNegative(ds$Prior, SensitivityAtCutoff(), SpecificityAtCutoff())
     return( ds )
@@ -176,21 +181,12 @@ shinyServer(function(input, output, session) {
     )
     return( ifelse(!is.null(u), u$root, NA_real_) )  
   })
-  
-  #TODO: make these into one table, instead of loose labels
-  output$lblCutoff <- reactive({ return( paste("Diagnostic Cutoff:", round(PdfIntersectX())) ) })
-  output$lblSpecificity <- reactive({ return( paste("Specificity at Cutoff:", scales::percent(round(SpecificityAtCutoff(), 3))) ) })
-  output$lblSensitivity <- reactive({ return( paste("Sensitivity at Cutoff:", scales::percent(round(SensitivityAtCutoff(), 3))) ) })
-  output$lblTxThreshold <- reactive({ return( paste("Treatment Threshold:", scales::percent(round(ThresholdIntersectX(), 3))) ) })
-  output$lblNoTestTestThreshold <- reactive({ return( paste("NoTest-Test Threshold:", scales::percent(round(ThresholdPositiveTestIntersect(), 3))) ) })
-  output$lblTestTreatThreshold <- reactive({ return( paste("Test-Treat Threshold:", scales::percent(round(ThresholdNegativeTestIntersect(), 3))) ) })
-  
+   
   output$plotBayesian <- renderPlot({
     thresholdPositiveTestIntersectX <- ThresholdPositiveTestIntersect()
     thresholdPositiveTestIntersectY <- CalculatePosteriorPositive(thresholdPositiveTestIntersectX, SensitivityAtCutoff(), SpecificityAtCutoff())
     thresholdNegativeTestIntersectX <- ThresholdNegativeTestIntersect()
     thresholdNegativeTestIntersectY <- CalculatePosteriorNegative(thresholdNegativeTestIntersectX, SensitivityAtCutoff(), SpecificityAtCutoff())
-    
     
     ds <- ProbabilityData()
     g <- ggplot(ds, aes(x=Prior)) +
@@ -210,7 +206,7 @@ shinyServer(function(input, output, session) {
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
       coord_fixed() +
-      theme_bw() +
+      appTheme +
       labs(title="Bayesian Graph with Treatment Threshold", x="Pretest Probability", y="Postest Probability")
     print(g)
   }) 
@@ -224,7 +220,7 @@ shinyServer(function(input, output, session) {
       annotate(geom="text", label="Nondiseased", x=userInputs()$muN, y=peakN(), vjust=0, color=paletteDisease["F"]) +
       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=0, color=paletteDisease["T"]) +
       annotate(geom="text", label="Cutoff", x=PdfIntersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
-      theme_bw() +
+      appTheme +
       labs(title="PDFs", x="Diagnostic Score", y="Probability Density")
     print(g)
   })  
@@ -235,7 +231,7 @@ shinyServer(function(input, output, session) {
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
-      theme_bw() +
+      appTheme +
       labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
     print(g)
   })
@@ -257,7 +253,7 @@ shinyServer(function(input, output, session) {
       scale_y_continuous(label=scales::percent) +
       coord_cartesian(xlim=c(1.02,-.02)) +
       #       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
-      theme_bw() +
+      appTheme +
       labs(title="Treatment Threshold Probability", x="Probability Patient has the Disease", y="Expected Utility of Treatment")
 
     if( !is.na(ThresholdIntersectX()) ) {
@@ -267,5 +263,20 @@ shinyServer(function(input, output, session) {
         annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90)
     }
     print(g)
-  })  
+  })
+  output$Derived <- renderTable({
+    # if (nrow(somethingNecessary()) == 0) return( NULL )
+
+    rowNames <- c("Cutoff", "Sensitivity", "Specificity", "TxThreshold", "NoTestTestThreshold", "TestTreatThreshold")
+    d <- data.frame(Label=rep(NA_character_, times=length(rowNames)), Value=NA_character_,  stringsAsFactors=FALSE)
+    row.names(d) <- rowNames
+    #d["Cutoff", ] <- c("Diagnostic Cutoff", paste0(round(PdfIntersectX()), "___"))
+    d["Cutoff", ] <- c("Diagnostic Cutoff", sprintf("%.2f", PdfIntersectX()))
+    d["Sensitivity", ] <- c("Sensitivity at Cutoff", sprintf("%.1f%%", SensitivityAtCutoff()*100))
+    d["Specificity", ] <- c("Specificity at Cutoff", sprintf("%.1f%%", SpecificityAtCutoff()*100))
+    d["TxThreshold", ] <- c("Treatment Threshold", sprintf("%.1f%%", ThresholdIntersectX()*100))
+    d["NoTestTestThreshold", ] <- c("NoTest/Test Threshold", sprintf("%.1f%%", ThresholdPositiveTestIntersect()*100))
+    d["TestTreatThreshold", ] <- c("Test/Treat Threshold", sprintf("%.1f%%", ThresholdNegativeTestIntersect()*100))
+    return( d )  
+  }, include.rownames=F, include.colnames=F, align="llr") #End Derived Table
 })
