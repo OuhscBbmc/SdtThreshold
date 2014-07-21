@@ -19,6 +19,7 @@ stepWidthMeasurement <- 1
 stepWidthProbability <- .01
 paletteDisease <- RColorBrewer::brewer.pal(n=3, name="Set1")[1:2]; names(paletteDisease) <- c("T", "F")
 paletteTest <- RColorBrewer::brewer.pal(n=3, name="Accent")[2:3]; names(paletteTest) <- c("P", "N")
+colorTxThreshold <- RColorBrewer::brewer.pal(n=3, name="Accent")[1]
 muN <- 0
 sigmaN <- 10
 #######################################
@@ -116,7 +117,8 @@ shinyServer(function(input, output, session) {
     return( difference )
   }
   PdfIntersectX <- reactive({  
-    searchRange <- range(c(userInputs()$muD + c(1,-1)*userInputs()$sigmaD, muN + c(1,-1)*userInputs()$sigmaD))
+    #searchRange <- range(c(userInputs()$muD + c(1,-1)*userInputs()$sigmaD, muN + c(1,-1)*userInputs()$sigmaD))
+    searchRange <- c(muN, measurementRange[2])
     u <- NULL
     try(
       u <- uniroot(f=PdfDifference, interval=searchRange),
@@ -193,15 +195,15 @@ shinyServer(function(input, output, session) {
     g <- ggplot(ds, aes(x=Prior)) +
       geom_path(aes(y=PosteriorPositive), color=paletteTest["P"], size=4, alpha=.5, lineend="round") +
       geom_path(aes(y=PosteriorNegative), color=paletteTest["N"], size=4, alpha=.5, lineend="round") +
-      geom_hline(yintercept=ThresholdIntersectX(), linetype="F3", color="gray30", alpha=.5) +
+      geom_hline(yintercept=ThresholdIntersectX(), linetype="F3", color=colorTxThreshold, size=2, alpha=.5) +
       annotate(geom="segment", x=0, y=0, xend=1, yend=1, size=2, alpha=.2, lineend="round") +
-      annotate(geom="segment", x=thresholdPositiveTestIntersectX, y=thresholdPositiveTestIntersectX, xend=thresholdPositiveTestIntersectX, yend=thresholdPositiveTestIntersectY, size=2, alpha=.2,lineend="round") +
+      annotate(geom="segment", x=thresholdPositiveTestIntersectX, y=thresholdPositiveTestIntersectX, xend=thresholdPositiveTestIntersectX, yend=thresholdPositiveTestIntersectY, size=2, alpha=.2, lineend="round") +
       annotate(geom="segment", x=thresholdNegativeTestIntersectX, y=thresholdNegativeTestIntersectX, xend=thresholdNegativeTestIntersectX, yend=thresholdNegativeTestIntersectY, size=2, alpha=.2, lineend="round") +
       
       annotate(geom="text", label="probability given\npositive test", x=0, y=1, hjust=0, vjust=1, color=paletteTest["P"]) +
       annotate(geom="text", label="probability given\nnegative test", x=1, y=0, hjust=1, vjust=0, color=paletteTest["N"]) +
       annotate(geom="text", label="if no test", x=.5, y=.5, hjust=.5, angle=45, color="gray30", alpha=.5) +
-      annotate(geom="text", label="tx\nthreshold", x=1, y=ThresholdIntersectX(), hjust=1, vjust=.5, color="gray30", alpha=.5) +
+      annotate(geom="text", label="tx\nthreshold", x=1, y=ThresholdIntersectX(), hjust=1, vjust=.5, color=colorTxThreshold, alpha=1) +
       annotate(geom="text", label="NoTest/Test\nThreshold", x=thresholdPositiveTestIntersectX, y=thresholdPositiveTestIntersectX, hjust=0, vjust=.5, angle=90, color="gray30", alpha=.5) +
       annotate(geom="text", label="Test/Treat\nThreshold", x=thresholdNegativeTestIntersectX, y=ThresholdIntersectX(), hjust=0, vjust=.5, angle=90, color="gray30", alpha=.5) +
       scale_x_continuous(label=scales::percent) +
@@ -231,6 +233,7 @@ shinyServer(function(input, output, session) {
   output$plotRoc <- renderPlot({
     ds <- MeasurementData()
     g <- ggplot(ds, aes(x=1-NondiseasedCdfL, y=DiseasedCdfR)) +
+      annotate(geom="segment", x=0, y=0, xend=1, yend=1, size=2, alpha=.2, lineend="round") +
       geom_path(size=4, alpha=.5, lineend="round") +
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
@@ -262,9 +265,9 @@ shinyServer(function(input, output, session) {
 
     if( !is.na(ThresholdIntersectX()) ) {
       g  <- g + 
-        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=paletteDisease["F"]) +
-        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=4, alpha=.15, lineend="butt", color=paletteDisease["T"]) +
-        annotate(geom="text", label="Tx Threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90)
+        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=2, alpha=.5, lineend="butt", color=colorTxThreshold, linetype="F3") +
+        # annotate(geom="text", label="tx threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90)
+        annotate(geom="text", label="  tx\n  threshold", x=ThresholdIntersectX(), y=-Inf, hjust=0, vjust=.5, color=colorTxThreshold, alpha=1, angle=90)
     }
     print(g)
   })
