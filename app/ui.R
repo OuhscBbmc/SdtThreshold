@@ -34,57 +34,43 @@ shinyUI(fluidPage(
         tabPanel(
           title = "Documentation",
           h3('Overview'),
-          paste(
-            "Clinical medicine has talked about thresholds starting with Pauker and Kassirer (1975)",
-            "on treatment thresholds (the probability that this patient has the disease, above which you would", 
-            "treat the disease, below which you would not) and Pauker and Kassirer (1980) on test thresholds",
-            "(a low probability, below which you would neither test nor treat; a high probability, above which",
-            "you would treat; and do the test in the middle range and treat according to the test result)." 
-          ),
+          "Clinical medicine has talked about thresholds starting with Pauker and Kassirer (1975)
+            on treatment thresholds (the probability that this patient has the disease, above which you would
+            treat the disease, below which you would not) and Pauker and Kassirer (1980) on test thresholds
+            (a low probability, below which you would neither test nor treat; a high probability, above which
+            you would treat; and do the test in the middle range and treat according to the test result).",
           h3(''),
-          paste(
-            "Signal detection theory, in engineering and psychology, has talked about thresholds",
-            "for calling the situation a signal, famously with World War II analysis of sonar signals and explicitly",
-            "in psychology with Green and Swets as a reference milestone." 
-          ),
+          "Signal detection theory, in engineering and psychology, has talked about thresholds
+            for calling the situation a signal, famously with World War II analysis of sonar signals and explicitly
+            in psychology with Green and Swets as a reference milestone.",
           h3(''),
-          paste(
-            "The thresholds in clinical medicine depend only on the utilities of the two errors,",
-            "false positives and false negatives. The thresholds in SDT depend on those utilities as well as",
-            "the prior probabilities. The purpose of this calculator is to illustrate why these two thresholds differ. " 
-          ),
+          "The thresholds in clinical medicine depend only on the utilities of the two errors,
+            false positives and false negatives. The thresholds in SDT depend on those utilities as well as
+            the prior probabilities. The purpose of this calculator is to illustrate why these two thresholds differ.",
           h3(''),
-          paste(
-            "The approach will be to produce three graphs: a Strength of Evidence Graph (from",
-            "signal detection theory), a Pauker and Kassirer threshold graph (from clinical medicine), and",
-            "a Bayes' graph (Bayes' football; from clinical medicine) and illustrate how they integrate. All will",
-            "be illuminated."
-          ),
+          "The approach will be to produce three graphs: a Strength of Evidence Graph (from
+            signal detection theory), a Pauker and Kassirer threshold graph (from clinical medicine), and
+            a Bayes' graph (Bayes' football; from clinical medicine) and illustrate how they integrate. All will
+            be illuminated.",
           h3(''),
-          paste(
-            "The Strength of Evidence Graph has signal strength or evidence strength on the x axis,",
-            "and the y axis shows the probability density curves for each level of strength of evidence,",
-            "for the hypothesis and for the non hypothesis. Two separate density curves. We define each",
-            "density curve as summing to 1. We pick the point of maximum separation, ignoring base rate and utility of errors."
-          ),
+          "The Strength of Evidence Graph has signal strength or evidence strength on the x axis,
+            and the y axis shows the probability density curves for each level of strength of evidence,
+            for the hypothesis and for the non hypothesis. Two separate density curves. We define each
+            density curve as summing to 1. We pick the point of maximum separation, ignoring base rate and utility of errors.",
           h3(''),
-          paste(
-            "We leave out of the Strength of Evidence Graph considerations of the base rate",
-            "as well as considerations of error utility. That is because we consider utility in the Threshold Graph (and pass",
-            "it through to the Bayes' Graph), and the Bayes' Graph allows you to apply the analysis to a patient",
-            "with any base rate, any prior probability. If we also considered those here, then in effect the same", 
-            "considerations would be considered twice, and things conceptually would be a confused mess."
-          ),
+          "We leave out of the Strength of Evidence Graph considerations of the base rate
+            as well as considerations of error utility. That is because we consider utility in the Threshold Graph (and pass
+            it through to the Bayes' Graph), and the Bayes' Graph allows you to apply the analysis to a patient
+            with any base rate, any prior probability. If we also considered those here, then in effect the same
+            considerations would be considered twice, and things conceptually would be a confused mess.",
           h3(''),
-          paste(
-            "There is another way the evidence, under the two hypotheses, can be graphed:",
-            "the total data could recognize base rate, where the data in each curve occur as they would",
-            "in the environment. This could either be by dividing a total probability of 1 into two parts,",
-            "according to the base rate of H and not-H, or it could be a count of observations with normalization", 
-            "coming later. (The choice to ignore base rate has implications for whether the base rate is",
-            "represented in this graph, or not. Pure likelyhood ratio ignores the base rate. Or it can represent the",
-            "total impact of evidence including the base rate.)"
-          ),
+          "There is another way the evidence, under the two hypotheses, can be graphed:
+            the total data could recognize base rate, where the data in each curve occur as they would
+            in the environment. This could either be by dividing a total probability of 1 into two parts,
+            according to the base rate of H and not-H, or it could be a count of observations with normalization
+            coming later. (The choice to ignore base rate has implications for whether the base rate is
+            represented in this graph, or not. Pure likelyhood ratio ignores the base rate. Or it can represent the
+            total impact of evidence including the base rate.)",
           h3(''),
           "The Threshold Graph represents the utilities that would follow from the actions of treating
             or not treating in two basic conditions: if the patient has the disease (hit and miss), at the right end of the x-axis
@@ -111,8 +97,7 @@ shinyUI(fluidPage(
             continuum that you decide to call the evidence 'positive' (or, for a 'bin'), the likelihood ratio defines the
             test characteristic to be used in interpreting the results. This may be a simple rule or a complex set of
             rules, for example if multiple bins are used, or if we are considering the evidence from multiple tests
-            (conceptually a pair of distributions still)."
-          
+            (conceptually a pair of distributions still)."          
         ), # End of second tab
         tabPanel(
           title = "Contact",
