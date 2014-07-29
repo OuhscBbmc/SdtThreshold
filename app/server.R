@@ -18,6 +18,7 @@ measurementRange <- c(-40, 100)
 stepWidthMeasurement <- 1
 stepWidthProbability <- .01
 paletteDisease <- RColorBrewer::brewer.pal(n=3, name="Set1")[1:2]; names(paletteDisease) <- c("T", "F")
+paletteUtility <- c("Treat"="#1c5f83", "NotTreat"="#986a46")
 paletteTest <- RColorBrewer::brewer.pal(n=3, name="Accent")[2:3]; names(paletteTest) <- c("P", "N")
 colorTxThreshold <- RColorBrewer::brewer.pal(n=3, name="Accent")[1]
 muN <- 0
@@ -246,15 +247,15 @@ shinyServer(function(input, output, session) {
     ds <- ProbabilityData()
     s <- userInputs() #'s' stands for sliders
     g <- ggplot(ds, aes(x=Probability)) +
-      geom_path(aes(y=UtilityNondiseased), size=4, alpha=.3, color=paletteDisease["F"], lineend="round") +
-      geom_path(aes(y=UtilityDiseased), size=4, alpha=.3, color=paletteDisease["T"], lineend="round") +
-      annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=paletteDisease["F"], linespace=-1) +
-      annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=paletteDisease["T"], linespace=4) +
+      geom_path(aes(y=UtilityNondiseased), size=4, alpha=.3, color=paletteUtility["NotTreat"], lineend="round") +
+      geom_path(aes(y=UtilityDiseased), size=4, alpha=.3, color=paletteUtility["Treat"], lineend="round") +
+      annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=paletteUtility["NotTreat"], linespace=-1) +
+      annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=paletteUtility["Treat"], linespace=4) +
       
-      annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=paletteDisease["F"]) +
-      annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=paletteDisease["T"]) +
-      annotate(geom="text", label="u(FN)", x=1, y=s$uFN, hjust=1, vjust=0, color=paletteDisease["F"]) +
-      annotate(geom="text", label="u(TP)", x=1, y=s$uTP, hjust=1, vjust=0, color=paletteDisease["T"]) +
+      annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=paletteUtility["NotTreat"]) +
+      annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=paletteUtility["Treat"]) +
+      annotate(geom="text", label="u(FN)", x=1, y=s$uFN, hjust=1, vjust=0, color=paletteUtility["NotTreat"]) +
+      annotate(geom="text", label="u(TP)", x=1, y=s$uTP, hjust=1, vjust=0, color=paletteUtility["Treat"]) +
       
       scale_x_continuous(label=scales::percent) +
       scale_y_continuous(label=scales::percent) +
