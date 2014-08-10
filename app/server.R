@@ -14,11 +14,13 @@ require(xtable)
 
 #######################################
 ### Declare globals
+# options(shiny.trace=TRUE) #http://stackoverflow.com/questions/23002712/shiny-what-is-the-option-setting-to-display-in-the-console-the-messages-between
+
 measurementRange <- c(-40, 100)
 stepWidthMeasurement <- 1
 stepWidthProbability <- .01
 paletteDisease <- RColorBrewer::brewer.pal(n=3, name="Set1")[1:2]; names(paletteDisease) <- c("T", "F")
-paletteUtility <- c("Treat"="#1c5f83", "NotTreat"="#986a46")
+paletteUtility <- c("Treat"="#1c5f83", "NotTreat"="#986a46") #http://colrd.com/image-dna/23557/
 paletteTest <- RColorBrewer::brewer.pal(n=3, name="Accent")[2:3]; names(paletteTest) <- c("P", "N")
 colorTxThreshold <- RColorBrewer::brewer.pal(n=3, name="Accent")[1]
 muN <- 0

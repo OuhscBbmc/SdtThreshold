@@ -13,7 +13,7 @@ grid,TRUE,TRUE,,foundation underneath ggplot2.
 gridExtra,TRUE,TRUE,,Additional functions for manipulating `grid` objects.
 jsonlite,TRUE,TRUE,,"For reading polygons coded as JSON."
 knitr,TRUE,TRUE,,For reporting.
-leaflet-shiny,FALSE,TRUE,jcheng5,"Connects shiny to leaflet, for mapping"
+"leaflet-shiny",FALSE,TRUE,jcheng5,"Connects shiny to leaflet, for mapping"
 lme4,TRUE,FALSE,,Multilevel models.
 lubridate,TRUE,TRUE,,Consistent/convenient function signatures for manipulating dates.
 maps,TRUE,TRUE,,"Spatial functions."
@@ -22,10 +22,12 @@ random,TRUE,FALSE,,Creates random numbers for salts.
 RColorBrewer,TRUE,TRUE,,Explicit control over the Color Brewer colors.  See http://colorbrewer2.org/.
 RCurl,TRUE,TRUE,,Interact with the web APIs.
 reshape2,TRUE,TRUE,,Data manipulation not covered in plyr.
-rgdal,TRUE,TRUE,,"Reading/Importing spatial data files."
+rgdal,TRUE,FALSE,,"Reading/Importing spatial data files."
 RODBC,TRUE,FALSE,,For connecting to ODBC databases.
 roxygen2,TRUE,TRUE,,Creates documentation Rd file from (well-formed) comments.
+rscrypt,FALSE,TRUE,rstudio,Encrypts passwords; needed for ShinyApps.
 shiny,FALSE,TRUE,rstudio,The basis for the server the content over a web page.
+shinyapps,FALSE,TRUE,rstudio,Deploys and manages app on ShinyApps.io.
 ShinyDash,FALSE,TRUE,trestletech,Dashboard controls used in some Shiny applications
 sp,TRUE,TRUE,,"The basic spatial package for R."
 splines,TRUE,TRUE,,"For nonlinear prediction."
