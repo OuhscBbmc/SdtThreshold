@@ -15,7 +15,7 @@ shinyUI(fluidPage(
   fluidRow(headerPanel('--minimal branch--')),
   fluidRow(
     column( 
-      width = 3,
+      width = 6,
       wellPanel(tabsetPanel( type = "tabs",
         tabPanel(
           title = "Values",

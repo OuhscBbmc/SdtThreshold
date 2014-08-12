@@ -287,6 +287,8 @@ shinyServer(function(input, output, session) {
     d["TxThreshold", ] <- c("Treatment Threshold", sprintf("%.1f%%", ThresholdIntersectX()*100))
     d["NoTestTestThreshold", ] <- c("NoTest/Test Threshold", sprintf("%.1f%%", ThresholdPositiveTestIntersect()*100))
     d["TestTreatThreshold", ] <- c("Test/Treat Threshold", sprintf("%.1f%%", ThresholdNegativeTestIntersect()*100))
+    d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo(), collapse="\n"))
+
     return( d )  
   }, include.rownames=F, include.colnames=F, align="llr") #End Derived Table
   output$Diagnostic <- renderTable({
