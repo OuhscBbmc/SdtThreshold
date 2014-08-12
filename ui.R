@@ -12,6 +12,7 @@ require(ggplot2)
 sliderWidth <- "100%"
 shinyUI(fluidPage(
   fluidRow(headerPanel('Rob Hamm\'s SDT and Threshold Comparison')),
+  fluidRow(headerPanel('--minimal branch--')),
   fluidRow(
     column( 
       width = 3,
@@ -112,13 +113,13 @@ shinyUI(fluidPage(
     ), #End of column
     column(
       width=5,
-      plotOutput('plotPdf', height='400px'),    
-      plotOutput('plotTxThreshold', height='400px')
+      plotOutput('plotPdf', height='400px')#,    
+#       plotOutput('plotTxThreshold', height='400px')
     ), #End of column
     column(
-      width=4,
-      plotOutput('plotRoc', height='300px'),
-      plotOutput('plotBayesian', height='500px') #, width='48%'
+      width=4#,
+#       plotOutput('plotRoc', height='300px'),
+#       plotOutput('plotBayesian', height='500px') #, width='48%'
     ) #End of column
   ) #End of row  
 )) #End of fluidPage and ShinyUI
