@@ -277,7 +277,6 @@ shinyServer(function(input, output, session) {
   })
   output$Derived <- renderTable({
     # if (nrow(somethingNecessary()) == 0) return( NULL )
-
     rowNames <- c("Cutoff", "Sensitivity", "Specificity", "TxThreshold", "NoTestTestThreshold", "TestTreatThreshold")
     d <- data.frame(Label=rep(NA_character_, times=length(rowNames)), Value=NA_character_,  stringsAsFactors=FALSE)
     row.names(d) <- rowNames
@@ -290,7 +289,7 @@ shinyServer(function(input, output, session) {
     d["TestTreatThreshold", ] <- c("Test/Treat Threshold", sprintf("%.1f%%", ThresholdNegativeTestIntersect()*100))
     
     # sink("SinkExample.txt")
-    d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo()))
+#     d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo()))
     #     d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo(), collapse="\n"))
     # system2( d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo())), stdout="out.txt", stderr="err.txt")
     #   sink()
