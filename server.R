@@ -15,6 +15,7 @@ require(xtable)
 #######################################
 ### Declare globals
 # options(shiny.trace=TRUE) #http://stackoverflow.com/questions/23002712/shiny-what-is-the-option-setting-to-display-in-the-console-the-messages-between
+# system2("whoami", stdout="out.txt", stderr="err.txt")
 
 measurementRange <- c(-40, 100)
 stepWidthMeasurement <- 1
@@ -287,8 +288,12 @@ shinyServer(function(input, output, session) {
     d["TxThreshold", ] <- c("Treatment Threshold", sprintf("%.1f%%", ThresholdIntersectX()*100))
     d["NoTestTestThreshold", ] <- c("NoTest/Test Threshold", sprintf("%.1f%%", ThresholdPositiveTestIntersect()*100))
     d["TestTreatThreshold", ] <- c("Test/Treat Threshold", sprintf("%.1f%%", ThresholdNegativeTestIntersect()*100))
-    d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo(), collapse="\n"))
-
+    
+    # sink("SinkExample.txt")
+    d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo()))
+    #     d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo(), collapse="\n"))
+    # system2( d["TestTreatThreshold", ] <- c("SessionInfo", paste(sessionInfo())), stdout="out.txt", stderr="err.txt")
+    #   sink()
     return( d )  
   }, include.rownames=F, include.colnames=F, align="llr") #End Derived Table
   output$Diagnostic <- renderTable({
