@@ -96,8 +96,8 @@ shinyServer(function(input, output, session) {
     d$DiseasedPdf <- CalculateDiseasePdf(score=d$Score, s$muD, s$sigmaD, baseRate=NA)
     d$NondiseasedCdfL <- CalculateNondiseaseCdf(score=d$Score,  muN, sigmaN, baseRate=NA) #Specificity; the 'L' stands for "left" of the point.
     d$DiseasedCdfL <- CalculateDiseaseCdf(score=d$Score, s$muD, s$sigmaD, baseRate=NA)
-    d$NondiseasedCdfR <- 1- d$NondiseasedCdf #max(d$NondiseasedCdf) - d$NondiseasedCdf
-    d$DiseasedCdfR <- 1 - d$DiseasedCdf #max(d$DiseasedCdf) - d$DiseasedCdf #Sensitivity; the 'R' stands for "right" of the point.
+    d$NondiseasedCdfR <- 1- d$NondiseasedCdfL #max(d$NondiseasedCdf) - d$NondiseasedCdf
+    d$DiseasedCdfR <- 1 - d$DiseasedCdfL #max(d$DiseasedCdf) - d$DiseasedCdf #Sensitivity; the 'R' stands for "right" of the point.
     d$LRInstant <- d$DiseasedPdf / d$NondiseasedPdf
     d$LRPlus <- (d$DiseasedCdfR)  / (d$NondiseasedCdfR)
     d$LRMinus <- (d$DiseasedCdfL)  / (d$NondiseasedCdfL)
