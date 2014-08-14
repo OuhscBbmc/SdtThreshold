@@ -33,8 +33,8 @@ shinyUI(fluidPage(
           sliderInput(inputId="uFN", label="u(FN) = Utility of a False, Negative Decision to Treat", min=0, max=1, value=.80, step=.01, width=sliderWidth),
           sliderInput(inputId="uFP", label="u(FP) = Utility of a False, Positive Decision to Treat", min=0, max=1, value=.95, step=.01, width=sliderWidth),
           sliderInput(inputId="uTN", label="u(TN) = Utility of a True, Negative Decision to Treat", min=0, max=1, value=.99, step=.01, width=sliderWidth)
-          ), # End of first tab
-          tabPanel(
+        ), # End of first tab
+        tabPanel(
           title = "Contact",
           h3('Concept and Prototype by Rob Hamm'),          
           "Robert M. Hamm, PhD; Clinical Decision Making Program; Department of Family Medicine [www.oumedicine.com/familymedicine]; University of Oklahoma Health Sciences Center; Oklahoma City OK 73190; 405/271-8000 ext 32306; Fax: 405/271-4125; email: robert-hamm@ouhsc.edu",
@@ -44,14 +44,15 @@ shinyUI(fluidPage(
       )) #End of wellPanel & tabsetPanel
     ), #End of column
     column(
-      width=5#,
+      width=5,
+      plotOutput('plotDummy', height='400px')
       #       plotOutput('plotPdf', height='400px')#,    
       #       plotOutput('plotTxThreshold', height='400px')
     ), #End of column
     column(
-      width=4#,
-      #       plotOutput('plotRoc', height='300px'),
-      #       plotOutput('plotBayesian', height='500px') #, width='48%'
+      width=4,
+      plotOutput('plotRoc', height='300px'),
+      plotOutput('plotBayesian', height='500px') #, width='48%'
     ) #End of column
   ) #End of row  
 )) #End of fluidPage and ShinyUI

@@ -15,7 +15,7 @@ require(xtable)
 #######################################
 ### Declare globals
 options(shiny.trace=TRUE) #http://stackoverflow.com/questions/23002712/shiny-what-is-the-option-setting-to-display-in-the-console-the-messages-between
-system2("whoami", stdout="out.txt", stderr="err.txt")
+#system2("whoami", stdout="out.txt", stderr="err.txt")
 
 measurementRange <- c(-40, 100)
 stepWidthMeasurement <- 1
@@ -189,92 +189,103 @@ shinyServer(function(input, output, session) {
     return( ifelse(!is.null(u), u$root, NA_real_) )  
   })
   
-  #   output$plotBayesian <- renderPlot({
-  #     thresholdPositiveTestIntersectX <- ThresholdPositiveTestIntersect()
-  #     thresholdPositiveTestIntersectY <- CalculatePosteriorPositive(thresholdPositiveTestIntersectX, SensitivityAtCutoff(), SpecificityAtCutoff())
-  #     thresholdNegativeTestIntersectX <- ThresholdNegativeTestIntersect()
-  #     thresholdNegativeTestIntersectY <- CalculatePosteriorNegative(thresholdNegativeTestIntersectX, SensitivityAtCutoff(), SpecificityAtCutoff())
-  #     
-  #     ds <- ProbabilityData()
-  #     g <- ggplot(ds, aes(x=Prior)) +
-  #       geom_path(aes(y=PosteriorPositive), color=paletteTest["P"], size=4, alpha=.5, lineend="round") +
-  #       geom_path(aes(y=PosteriorNegative), color=paletteTest["N"], size=4, alpha=.5, lineend="round") +
-  #       geom_hline(yintercept=ThresholdIntersectX(), linetype="F3", color=colorTxThreshold, size=2, alpha=.5) +
-  #       annotate(geom="segment", x=0, y=0, xend=1, yend=1, size=2, alpha=.2, lineend="round") +
-  #       annotate(geom="segment", x=thresholdPositiveTestIntersectX, y=thresholdPositiveTestIntersectX, xend=thresholdPositiveTestIntersectX, yend=thresholdPositiveTestIntersectY, size=2, alpha=.2, lineend="round") +
-  #       annotate(geom="segment", x=thresholdNegativeTestIntersectX, y=thresholdNegativeTestIntersectX, xend=thresholdNegativeTestIntersectX, yend=thresholdNegativeTestIntersectY, size=2, alpha=.2, lineend="round") +
-  #       
-  #       annotate(geom="text", label="probability given\npositive test", x=0, y=1, hjust=0, vjust=1, color=paletteTest["P"]) +
-  #       annotate(geom="text", label="probability given\nnegative test", x=1, y=0, hjust=1, vjust=0, color=paletteTest["N"]) +
-  #       annotate(geom="text", label="if no test", x=.5, y=.5, hjust=.5, angle=45, color="gray30", alpha=.5) +
-  #       annotate(geom="text", label="tx\nthreshold", x=1, y=ThresholdIntersectX(), hjust=1, vjust=.5, color=colorTxThreshold, alpha=1) +
-  #       annotate(geom="text", label="NoTest/Test\nThreshold", x=thresholdPositiveTestIntersectX, y=thresholdPositiveTestIntersectX, hjust=0, vjust=.5, angle=90, color="gray30", alpha=.5) +
-  #       annotate(geom="text", label="Test/Treat\nThreshold", x=thresholdNegativeTestIntersectX, y=ThresholdIntersectX(), hjust=0, vjust=.5, angle=90, color="gray30", alpha=.5) +
-  #       scale_x_continuous(label=scales::percent) +
-  #       scale_y_continuous(label=scales::percent) +
-  #       coord_fixed() +
-  #       appTheme +
-  #       labs(title="Bayesian Graph with Treatment Threshold", x="Pretest Probability", y="Postest Probability")
-  #     print(g)
-  #   }) 
-  #   output$plotPdf <- renderPlot({
-  #     s <- userInputs() #'s' stands for sliders
-  #     ds <- MeasurementData()
-  #     g <- ggplot(ds, aes(x=Score)) +
-  #       geom_path(aes(y=NondiseasedPdf), color=paletteDisease["F"], size=4, alpha=.3, lineend="round") +
-  #       geom_path(aes(y=DiseasedPdf), color=paletteDisease["T"], size=4, alpha=.3, lineend="round") +
-  #       annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["F"]) +
-  #       annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["T"]) +
-  #       annotate(geom="text", label="Nondiseased", x=muN, y=peakN(), vjust=0, color=paletteDisease["F"]) +
-  #       annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=0, color=paletteDisease["T"]) +
-  #       annotate(geom="text", label=paste0("italic(N)(", muN, ", ", sigmaN, ")"), x=muN, y=peakN(), vjust=1.05, color=paletteDisease["F"], parse=T) +
-  #       annotate(geom="text", label=paste0("italic(N)(", s$muD, ", ", s$sigmaD, ")"), x=s$muD, y=peakD(), vjust=1.05, color=paletteDisease["T"], parse=T) +
-  #       annotate(geom="text", label="Cutoff", x=PdfIntersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
-  #       appTheme +
-  #       labs(title="PDFs", x="Diagnostic Score", y="Probability Density")
-  #     print(g)
-  #   })  
-  #   output$plotRoc <- renderPlot({
-  #     ds <- MeasurementData()
-  #     g <- ggplot(ds, aes(x=1-NondiseasedCdfL, y=DiseasedCdfR)) +
-  #       annotate(geom="segment", x=0, y=0, xend=1, yend=1, size=2, alpha=.2, lineend="round") +
-  #       geom_path(size=4, alpha=.5, lineend="round") +
-  #       scale_x_continuous(label=scales::percent) +
-  #       scale_y_continuous(label=scales::percent) +
-  #       coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
-  #       appTheme +
-  #       labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
-  #     print(g)
-  #   })
-  #   output$plotTxThreshold <- renderPlot({
-  #     ds <- ProbabilityData()
-  #     s <- userInputs() #'s' stands for sliders
-  #     g <- ggplot(ds, aes(x=Probability)) +
-  #       geom_path(aes(y=UtilityNondiseased), size=4, alpha=.3, color=paletteUtility["NotTreat"], lineend="round") +
-  #       geom_path(aes(y=UtilityDiseased), size=4, alpha=.3, color=paletteUtility["Treat"], lineend="round") +
-  #       annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=paletteUtility["NotTreat"], linespace=-1) +
-  #       annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=paletteUtility["Treat"], linespace=4) +
-  #       
-  #       annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=paletteUtility["NotTreat"]) +
-  #       annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=paletteUtility["Treat"]) +
-  #       annotate(geom="text", label="u(FN)", x=1, y=s$uFN, hjust=1, vjust=0, color=paletteUtility["NotTreat"]) +
-  #       annotate(geom="text", label="u(TP)", x=1, y=s$uTP, hjust=1, vjust=0, color=paletteUtility["Treat"]) +
-  #       
-  #       scale_x_continuous(label=scales::percent) +
-  #       scale_y_continuous(label=scales::percent) +
-  #       coord_cartesian(xlim=c(1.02,-.02)) +
-  #       # coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
-  #       appTheme +
-  #       labs(title="Treatment Threshold Probability", x="Probability Patient has the Disease", y="Expected Utility of Treatment")
-  # 
-  #     if( !is.na(ThresholdIntersectX()) ) {
-  #       g  <- g + 
-  #         annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=2, alpha=.5, lineend="butt", color=colorTxThreshold, linetype="F3") +
-  #         # annotate(geom="text", label="tx threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90)
-  #         annotate(geom="text", label="  tx\n  threshold", x=ThresholdIntersectX(), y=-Inf, hjust=0, vjust=.5, color=colorTxThreshold, alpha=1, angle=90)
-  #     }
-  #     print(g)
-  #   })
+  output$plotDummy <- renderPlot({
+    print(ggplot2::qplot(mtcars$mpg))
+  })
+  output$plotBayesian <- renderPlot({
+    sensitivityAtCutoff <- SensitivityAtCutoff()
+    specificityAtCutoff <- SpecificityAtCutoff()
+    thresholdPositiveTestIntersectX <- ThresholdPositiveTestIntersect()
+    thresholdPositiveTestIntersectY <- CalculatePosteriorPositive(thresholdPositiveTestIntersectX, sensitivityAtCutoff, specificityAtCutoff)
+    thresholdNegativeTestIntersectX <- ThresholdNegativeTestIntersect()
+    thresholdNegativeTestIntersectY <- CalculatePosteriorNegative(thresholdNegativeTestIntersectX, sensitivityAtCutoff, specificityAtCutoff)
+    
+    print(ggplot2::qplot(mtcars$cyl))
+    
+    ds <- ProbabilityData()
+    print(ggplot2::qplot(ds[, 1]))
+    print(ggplot2::qplot(ds$PosteriorPositive))
+    
+    g <- ggplot(ds, aes(x=Prior)) +
+      geom_path(aes(y=PosteriorPositive), color=paletteTest["P"], size=4, alpha=.5, lineend="round") +
+      geom_path(aes(y=PosteriorNegative), color=paletteTest["N"], size=4, alpha=.5, lineend="round") +
+      geom_hline(yintercept=ThresholdIntersectX(), linetype="F3", color=colorTxThreshold, size=2, alpha=.5) +
+      annotate(geom="segment", x=0, y=0, xend=1, yend=1, size=2, alpha=.2, lineend="round") +
+      annotate(geom="segment", x=thresholdPositiveTestIntersectX, y=thresholdPositiveTestIntersectX, xend=thresholdPositiveTestIntersectX, yend=thresholdPositiveTestIntersectY, size=2, alpha=.2, lineend="round") +
+      annotate(geom="segment", x=thresholdNegativeTestIntersectX, y=thresholdNegativeTestIntersectX, xend=thresholdNegativeTestIntersectX, yend=thresholdNegativeTestIntersectY, size=2, alpha=.2, lineend="round") +
+      
+      annotate(geom="text", label="probability given\npositive test", x=0, y=1, hjust=0, vjust=1, color=paletteTest["P"]) +
+      annotate(geom="text", label="probability given\nnegative test", x=1, y=0, hjust=1, vjust=0, color=paletteTest["N"]) +
+      annotate(geom="text", label="if no test", x=.5, y=.5, hjust=.5, angle=45, color="gray30", alpha=.5) +
+      annotate(geom="text", label="tx\nthreshold", x=1, y=ThresholdIntersectX(), hjust=1, vjust=.5, color=colorTxThreshold, alpha=1) +
+      annotate(geom="text", label="NoTest/Test\nThreshold", x=thresholdPositiveTestIntersectX, y=thresholdPositiveTestIntersectX, hjust=0, vjust=.5, angle=90, color="gray30", alpha=.5) +
+      annotate(geom="text", label="Test/Treat\nThreshold", x=thresholdNegativeTestIntersectX, y=ThresholdIntersectX(), hjust=0, vjust=.5, angle=90, color="gray30", alpha=.5) +
+      scale_x_continuous(label=scales::percent) +
+      scale_y_continuous(label=scales::percent) +
+      coord_fixed() +
+      appTheme +
+      labs(title="Bayesian Graph with Treatment Threshold", x="Pretest Probability", y="Postest Probability")
+    print(g)
+    
+  }) 
+  output$plotPdf <- renderPlot({
+    s <- userInputs() #'s' stands for sliders
+    ds <- MeasurementData()
+    g <- ggplot(ds, aes(x=Score)) +
+      geom_path(aes(y=NondiseasedPdf), color=paletteDisease["F"], size=4, alpha=.3, lineend="round") +
+      geom_path(aes(y=DiseasedPdf), color=paletteDisease["T"], size=4, alpha=.3, lineend="round") +
+      annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["F"]) +
+      annotate(geom="segment", x=PdfIntersectX(), y=PdfIntersectY(), xend=PdfIntersectX(), yend=0, size=4, alpha=.2, lineend="butt", color=paletteDisease["T"]) +
+      annotate(geom="text", label="Nondiseased", x=muN, y=peakN(), vjust=0, color=paletteDisease["F"]) +
+      annotate(geom="text", label="Diseased", x=userInputs()$muD, y=peakD(), vjust=0, color=paletteDisease["T"]) +
+      annotate(geom="text", label=paste0("italic(N)(", muN, ", ", sigmaN, ")"), x=muN, y=peakN(), vjust=1.05, color=paletteDisease["F"], parse=T) +
+      annotate(geom="text", label=paste0("italic(N)(", s$muD, ", ", s$sigmaD, ")"), x=s$muD, y=peakD(), vjust=1.05, color=paletteDisease["T"], parse=T) +
+      annotate(geom="text", label="Cutoff", x=PdfIntersectX(), y=0, hjust=-.05, color="gray30", angle=90) +
+      appTheme +
+      labs(title="PDFs", x="Diagnostic Score", y="Probability Density")
+    print(g)
+  })  
+  output$plotRoc <- renderPlot({
+    ds <- MeasurementData()
+    g <- ggplot(ds, aes(x=1-NondiseasedCdfL, y=DiseasedCdfR)) +
+      annotate(geom="segment", x=0, y=0, xend=1, yend=1, size=2, alpha=.2, lineend="round") +
+      geom_path(size=4, alpha=.5, lineend="round") +
+      scale_x_continuous(label=scales::percent) +
+      scale_y_continuous(label=scales::percent) +
+      coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
+      appTheme +
+      labs(title="ROC", x="1 - Specificity = False Positive Probability", y="Sensitivity = True Positive Probability")
+    print(g)
+  })
+  output$plotTxThreshold <- renderPlot({
+    ds <- ProbabilityData()
+    s <- userInputs() #'s' stands for sliders
+    g <- ggplot(ds, aes(x=Probability)) +
+      geom_path(aes(y=UtilityNondiseased), size=4, alpha=.3, color=paletteUtility["NotTreat"], lineend="round") +
+      geom_path(aes(y=UtilityDiseased), size=4, alpha=.3, color=paletteUtility["Treat"], lineend="round") +
+      annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=paletteUtility["NotTreat"], linespace=-1) +
+      annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=paletteUtility["Treat"], linespace=4) +
+      
+      annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=paletteUtility["NotTreat"]) +
+      annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=paletteUtility["Treat"]) +
+      annotate(geom="text", label="u(FN)", x=1, y=s$uFN, hjust=1, vjust=0, color=paletteUtility["NotTreat"]) +
+      annotate(geom="text", label="u(TP)", x=1, y=s$uTP, hjust=1, vjust=0, color=paletteUtility["Treat"]) +
+      
+      scale_x_continuous(label=scales::percent) +
+      scale_y_continuous(label=scales::percent) +
+      coord_cartesian(xlim=c(1.02,-.02)) +
+      # coord_fixed(ratio=1, xlim=c(1.03,-.03), ylim=c(-.03,1.03)) +
+      appTheme +
+      labs(title="Treatment Threshold Probability", x="Probability Patient has the Disease", y="Expected Utility of Treatment")
+
+    if( !is.na(ThresholdIntersectX()) ) {
+      g  <- g + 
+        annotate(geom="segment", x=ThresholdIntersectX(), y=ThresholdIntersectY(), xend=ThresholdIntersectX(), yend=0, size=2, alpha=.5, lineend="butt", color=colorTxThreshold, linetype="F3") +
+        # annotate(geom="text", label="tx threshold", x=ThresholdIntersectX(), y=-Inf, hjust=-.05, color="gray30", angle=90)
+        annotate(geom="text", label="  tx\n  threshold", x=ThresholdIntersectX(), y=-Inf, hjust=0, vjust=.5, color=colorTxThreshold, alpha=1, angle=90)
+    }
+    print(g)
+  })
   output$Derived <- renderTable({
     # if (nrow(somethingNecessary()) == 0) return( NULL )
     rowNames <- c("Cutoff", "Sensitivity", "Specificity", "TxThreshold", "NoTestTestThreshold", "TestTreatThreshold")
