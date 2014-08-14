@@ -20,6 +20,8 @@ shinyUI(fluidPage(
           title = "Values",
           h3('Derived Values'),
           tableOutput('Derived'), #TODO: add tooltips
+          h3('Diagnostic Values'),
+          tableOutput('Diagnostic'), 
           #TODO: add a tooltip with something like '(ie, the area of the blue curve left of the cutoff)'
           #TODO: add a tooltip with something like '(ie, the area of the red curve right of the cutoff)'
       

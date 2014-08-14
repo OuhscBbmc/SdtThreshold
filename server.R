@@ -289,4 +289,15 @@ shinyServer(function(input, output, session) {
     d["TestTreatThreshold", ] <- c("Test/Treat Threshold", sprintf("%.1f%%", ThresholdNegativeTestIntersect()*100))
     return( d )  
   }, include.rownames=F, include.colnames=F, align="llr") #End Derived Table
+  output$Diagnostic <- renderTable({
+    d1 <- data.frame(Sys.info())
+    d1 <- plyr::rename(d1, c("Sys.info.."="Value"))
+    
+    d2 <- data.frame(.libPaths())
+    d2 <- plyr::rename(d2, c(".libPaths.."="Value"))
+    row.names(d2) <- paste0("path", seq_len(nrow(d2)))
+    
+    d <- rbind(d1, d2)
+    return( d )  
+  }, include.rownames=T, include.colnames=T) #End Diagnostic Table
 })
