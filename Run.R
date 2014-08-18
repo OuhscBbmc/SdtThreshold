@@ -6,5 +6,6 @@ library(shiny)
 shiny::runApp('app', launch.browser=TRUE, port=6149)
 # To stop the Shiny server, click the red stop sign in the 'Console window.
 
+
 # Deploy to shinyapps.io if the change is stable.  See https://github.com/rstudio/shinyapps/blob/master/guide/guide.md
 # shinyapps::deployApp()

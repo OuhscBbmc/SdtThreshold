@@ -15,7 +15,7 @@ shinyUI(fluidPage(
   fluidRow(headerPanel('--escalate branch--')),
   fluidRow(
     column( 
-      width = 6,
+      width = 3,
       wellPanel(tabsetPanel( type = "tabs",
         tabPanel(
           title = "Values",
@@ -51,7 +51,7 @@ shinyUI(fluidPage(
     ), #End of column
     column(
       width=4,
-      plotOutput('plotRoc', height='300px'),
+#       plotOutput('plotRoc', height='300px'),
       plotOutput('plotBayesian', height='500px') #, width='48%'
     ) #End of column
   ) #End of row  
