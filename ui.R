@@ -12,7 +12,7 @@ require(ggplot2)
 sliderWidth <- "100%"
 shinyUI(fluidPage(
   fluidRow(headerPanel('Rob Hamm\'s SDT and Threshold Comparison')),
-  fluidRow(headerPanel('--escalate branch--')),
+  fluidRow(headerPanel('--escalate branch b6--')),
   fluidRow(
     column( 
       width = 3,
