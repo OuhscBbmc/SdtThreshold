@@ -252,8 +252,8 @@ shinyServer(function(input, output, session) {
     g <- ggplot(ds, aes(x=Probability)) +
       geom_path(aes(y=UtilityNondiseased), size=4, alpha=.3, color=paletteUtility["NotTreat"], lineend="round") +
       geom_path(aes(y=UtilityDiseased), size=4, alpha=.3, color=paletteUtility["Treat"], lineend="round") +
-      annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=paletteUtility["NotTreat"], linespace=-1) +
-      annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=paletteUtility["Treat"], linespace=4) +
+      annotate(geom="text", label="Utility of not treating,\nas if patient doesn't have disease", x=-Inf, y=-Inf, hjust=0, vjust=-2.5, color=paletteUtility["NotTreat"]) +
+      annotate(geom="text", label="Utility of treating,\nas if patient has disease", x=-Inf, y=-Inf, hjust=0, vjust=-1, color=paletteUtility["Treat"]) +
       
       annotate(geom="text", label="u(TN)", x=0, y=s$uTN, hjust=0, vjust=0, color=paletteUtility["NotTreat"]) +
       annotate(geom="text", label="u(FP)", x=0, y=s$uFP, hjust=0, vjust=0, color=paletteUtility["Treat"]) +
