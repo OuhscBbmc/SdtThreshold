@@ -2,3 +2,4 @@ name: SdtThreshold
 account: wibeasley
 bundleId: 40603
 url: http://wibeasley.shinyapps.io/SdtThreshold
+server: shinyapps.io
